@@ -1,54 +1,32 @@
 #include "pch.h"
 
+#include "tester.h"
 #include "socket.h"
+
+void HandleRequest(SOCKET* connection);
 
 int main()
 {
+	//const std::string testFile = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";
+	const std::string testFile = "C:\\dev\\CodeCritic\\TestScript\\interactive.cpp";
+
+	Tester tester{};
+	tester.RunTest(testFile);
+
+	// Start listening on webserver
 	Socket server = Socket("127.0.0.1", 80);
 	server.Listen(5);
 
 	while (true)
 	{
-		SOCKET connection = server.Accept();
-
-		char buff[1024];
-		int bytes = recv(connection, buff, 1024, 0);
-		if (bytes > 3)
+		// Accept incoming connection
+		SOCKET* connection = server.Accept();
+		if (connection == NULL)
 		{
-			std::cout << "recv length: " << bytes << '\n';
-
-			std::stringstream ss(buff);
-			std::string segment;
-			std::vector<std::string> http;
-
-			while (!std::getline(ss, segment, ' ').eof())
-			{
-				http.push_back(segment);
-			}
-
-			std::cout << http[0] << ' ' << http[1] << '\n';
-
-			if (http[0] == "GET")
-			{
-				std::string path = "website" + http[1];
-				if (path[path.size() - 1] == '/')
-				{
-					path += "index.html";
-				}
-
-				send(connection, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
-
-				std::ifstream file(path);
-				std::string line;
-				while (std::getline(file, line))
-				{
-					std::cout << line;
-					send(connection, line.c_str(), line.size(), 0);
-				}
-				file.close();
-			}
+			std::cout << "Connection failed\n";
+			continue;
 		}
 
-		closesocket(connection);
+		HandleRequest(connection);
 	}
 }

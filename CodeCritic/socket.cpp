@@ -66,7 +66,7 @@ void Socket::Listen(int max)
 	std::cout << "Socket listening on: " << ipstr << ":" << port << "\n";
 }
 
-SOCKET Socket::Accept()
+SOCKET* Socket::Accept()
 {
 	SOCKET connection = accept(mSocket, NULL, NULL);
 	if (connection == INVALID_SOCKET)
@@ -76,5 +76,5 @@ SOCKET Socket::Accept()
 	}
 
 	std::cout << "Accepted connection!\n";
-	return connection;
+	return &connection;
 }

@@ -4,7 +4,7 @@
 //
 //const std::string file = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";
 //
-//int __main()
+//int main()
 //{
 //	const size_t len = 8 * sizeof(CHAR);
 //	CHAR* testData = (CHAR*)malloc(len);
