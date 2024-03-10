@@ -8,7 +8,7 @@ void HandleRequest(SOCKET* connection);
 int main()
 {
 	//const std::string testFile = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";
-	const std::string testFile = "C:\\dev\\CodeCritic\\TestScript\\interactive.cpp";
+	const std::string testFile = "TestScript";
 
 	Tester tester{};
 	tester.RunTest(testFile);
