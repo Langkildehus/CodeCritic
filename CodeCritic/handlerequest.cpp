@@ -1,32 +1,107 @@
 #include "pch.h"
+#define READSIZE 128
 
 void HandleRequest(SOCKET* connection)
 {
-	char buff[1024];
-	int bytes = recv(*connection, buff, 1024, 0);
+	std::string req = "";
 
-	std::stringstream ss(buff);
-	std::string segment;
-	std::vector<std::string> http;
-
-	while (!std::getline(ss, segment, ' ').eof())
+	// Read untill '\r\n\r\n'
+	char buff[READSIZE];
+	int overRead = 0;
+	int bytes = recv(*connection, buff, READSIZE, 0);
+	char prev[3] = { '0', '0', '0' };
+	while (bytes)
 	{
-		http.push_back(segment);
-	}
-
-	std::cout << http[0] << ' ' << http[1] << '\n';
-
-	if (http[0] == "GET")
-	{
-		if (http[1] == "/api/opgaver")
+		bool CRLF = false;
+		for (int c = 0; c < bytes; c++)
 		{
-			std::string response = "[\"Opgave1\", \"Opgave2\", \"Grim\"]";
-			std::cout << response << std::endl;
-			send(*connection, response.c_str(), response.size(), 0);
-			closesocket(*connection);
+			// Check for '\r\n\r\n'
+			if (prev[0] == '\r' && prev[1] == '\n' && prev[2] == '\r' && buff[c] == '\n')
+			{
+				overRead = READSIZE - c - 1;
+				CRLF = true;
+				break;
+			}
+
+			// Update prev
+			prev[0] = prev[1];
+			prev[1] = prev[2];
+			prev[2] = buff[c];
+			req += buff[c];
 		}
 
-		std::string path = "website" + http[1];
+		if (CRLF)
+		{
+			break;
+		}
+
+		bytes = recv(*connection, buff, READSIZE, 0);
+	}
+
+	std::stringstream ss(req);
+	std::string segment;
+	std::vector<std::string> header;
+	size_t contentLength = 0;
+
+	while (!std::getline(ss, segment, '\n').eof())
+	{
+		header.push_back(segment);
+		if (header.size() > 1 && header[header.size() - 1].substr(0, 16) == "Content-Length: ")
+		{
+			contentLength = std::stoi(segment.substr(16));
+		}
+		//std::cout << "\n--------------\n" << segment;
+	}
+	if (header.size() < 2)
+	{
+		std::cout << "Ignoring bad http request\n";
+		return;
+	}
+
+	std::stringstream generalHeader(header[0]);
+
+	std::string type;
+	std::string url;
+
+	int c = 0;
+	while (!std::getline(generalHeader, segment, ' ').eof())
+	{
+		if (c == 0)
+		{
+			type = segment;
+		}
+		else if (c == 1)
+		{
+			url = segment;
+		}
+		else
+		{
+			if (segment != "HTTP/1.1")
+			{
+				std::cout << "Ignoring request. Expected HTTP/1.1\n";
+				closesocket(*connection);
+				return;
+			}
+		}
+		c++;
+	}
+
+	if (type == "GET")
+	{
+		// Check if GET request is requesting data from api
+		if (url.size() > 3 && url.substr(0, 4) == "/api")
+		{
+			std::string data = "{\"Opgaver\": [\"Opgave1\", \"Opgave2\", \"Grim\"]}";
+			std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: 43\r\n\r\n";
+
+			send(*connection, response.c_str(), response.size(), 0);
+			send(*connection, data.c_str(), data.size(), 0);
+			closesocket(*connection);
+			return;
+		}
+
+		// Generate path to file
+		std::string path = "website" + url;
 
 		// If path ends with '/', /index.html is assumed
 		if (path[path.size() - 1] == '/')
@@ -36,16 +111,38 @@ void HandleRequest(SOCKET* connection)
 
 		// Verify that file is valid (And allowed??)
 
+		// Send response header
 		send(*connection, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
 
+		// Create stream to open file
 		std::ifstream file(path);
 		std::string line;
 		while (std::getline(file, line))
 		{
+			// Send requested file as reponse body
 			send(*connection, line.c_str(), line.size(), 0);
 		}
 		file.close();
+		closesocket(*connection);
+		return;
+	}
+	else if (type == "POST")
+	{
+		std::cout << "Handling POST request with length: " << contentLength << "\n";
+
+		int remaining = contentLength - overRead;
+		std::string body = "";
+
+		if (remaining <= 0)
+		{
+			for (int i = overRead - 1; i < contentLength + overRead - 1; i++)
+			{
+				body += buff[i];
+			}
+			std::cout << body << "\n";
+		}
 	}
 
+	// Ignore everything else
 	closesocket(*connection);
 }

@@ -11,10 +11,10 @@ int main()
 	const std::string testFile = "TestScript";
 
 	Tester tester{};
-	tester.RunTest(testFile);
+	//tester.RunTest(testFile);
 
 	// Start listening on webserver
-	Socket server = Socket("10.130.148.1", 80);
+	Socket server = Socket("127.0.0.1", 80);
 	server.Listen(5);
 
 	while (true)
