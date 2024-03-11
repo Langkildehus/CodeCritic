@@ -1,21 +1,42 @@
 <!DOCTYPE html>
 <html>
-<script>
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", "10.130.148.1/api/opgaver");
-    xhr.send();
-    console.log("Hej");
-    xhr.responseType = "json";
-    xhr.onload = () => {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            const data = xhr.response;
-            console.log(data);
-        } else {
-            console.log("Error");
-        }
-    };
-</script>
-<body>
-    <h1>Hello World!</h1>
-</body>
+    <head>
+        <link rel="stylesheet" href="eksamenstyle.css">
+        <script src="script.js"></script>
+    </head>
+    <body>
+        <div id="modal1" class="modal">
+            <div class="mContent">
+                <div class="close">
+                    <button onclick="modalClose()">X</button>
+                </div>
+                <div class="form">
+                    <label for="user">Username:</label>
+                    <input type="text" id="user">
+                    <br/>
+                    <br/>
+                    <label for="pwd">Password:</label>
+                    <input type="password" id="pwd">
+                    <br/>
+                    <br/>
+                    <button id="login" onclick="login()">Login</button>
+                </div>
+            </div>
+        </div>
+        <div class="header">
+            <div class="top">
+               <ul>
+                <li><h1>CodeCritic</h1></li>
+                <li style="float: right;"><button id="log" onclick="modal()">Login</button></li>
+               </ul>
+            </div>
+            <div class="body">
+                <div id="side" class="sidebar">
+                </div>
+                <div class="content">
+                    <p>Hej</p>
+                </div>
+            </div>
+        </div>
+    </body>
 </html>
