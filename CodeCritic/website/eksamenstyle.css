@@ -22,7 +22,7 @@
     padding: 20px;
     border: 1px solid #888;
     width: 30%;
-    height: 25%;
+    height: 35%;
 }
 
 .close {
@@ -52,6 +52,7 @@
 .form input {
     height: 30px;
     border-radius: 15px;
+    width: 240px;
 }
 
 .form button {

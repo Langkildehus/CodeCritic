@@ -8,7 +8,7 @@
         <div id="modal1" class="modal">
             <div class="mContent">
                 <div class="close">
-                    <button onclick="modalClose()">X</button>
+                    <button onclick="modalClose(1)">X</button>
                 </div>
                 <div class="form">
                     <label for="user">Username:</label>
@@ -20,6 +20,26 @@
                     <br/>
                     <br/>
                     <button id="login" onclick="login()">Login</button>
+                    <br/><br/>
+                    <button onclick="modal(2);modalClose(1)">Sign Up</button>
+                </div>
+            </div>
+        </div>
+        <div id="modal2" class="modal">
+            <div class="mContent">
+                <div class="close">
+                    <button onclick="modalClose(2)">X</button>
+                </div>
+                <div class="form">
+                    <label for="user1">Username:</label><br/>
+                    <input type="text" id="user1">
+                    <br/>
+                    <br/>
+                    <label for="pwd1">Password:</label><br/>
+                    <input type="password" id="pwd1">
+                    <br/>
+                    <br/>
+                    <button id="login" onclick="">Login</button>
                 </div>
             </div>
         </div>
@@ -27,7 +47,7 @@
             <div class="top">
                <ul>
                 <li><h1>CodeCritic</h1></li>
-                <li style="float: right;"><button id="log" onclick="modal()">Login</button></li>
+                <li style="float: right;"><button id="log" onclick="modal(1)">Login</button></li>
                </ul>
             </div>
             <div class="body">

@@ -19,13 +19,13 @@ xhr.onload = () => {
 };
 
 /* Login pop-up modal */
-function modal() {
-    document.getElementById("modal1").style.display = "block";
+function modal(i) {
+    document.getElementById(`modal${i}`).style.display = "block";
 }
 
 /* Modal close */
-function modalClose() {
-    document.getElementById("modal1").style.display = "none";
+function modalClose(i) {
+    document.getElementById(`modal${i}`).style.display = "none";
 }
 
 /* Modal login form */
