@@ -1,5 +1,5 @@
 #include "pch.h"
-#define READSIZE 128
+#define READSIZE 1024
 
 void HandleRequest(SOCKET* connection)
 {
@@ -41,7 +41,7 @@ void HandleRequest(SOCKET* connection)
 	std::stringstream ss(req);
 	std::string segment;
 	std::vector<std::string> header;
-	size_t contentLength = 0;
+	int contentLength = 0;
 
 	while (!std::getline(ss, segment, '\n').eof())
 	{
@@ -119,6 +119,7 @@ void HandleRequest(SOCKET* connection)
 		std::string line;
 		while (std::getline(file, line))
 		{
+			line += "\n";
 			// Send requested file as reponse body
 			send(*connection, line.c_str(), line.size(), 0);
 		}
@@ -128,19 +129,33 @@ void HandleRequest(SOCKET* connection)
 	}
 	else if (type == "POST")
 	{
-		std::cout << "Handling POST request with length: " << contentLength << "\n";
-
 		int remaining = contentLength - overRead;
 		std::string body = "";
 
-		if (remaining <= 0)
+		if (contentLength > 0 && overRead > 0)
 		{
-			for (int i = overRead - 1; i < contentLength + overRead - 1; i++)
+			for (int i = READSIZE - overRead; i < READSIZE; i++)
+			{
+				if (i >= READSIZE - overRead + contentLength)
+				{
+					break;
+				}
+				body += buff[i];
+			}
+		}
+		contentLength -= overRead;
+
+		while (contentLength > 0)
+		{
+			bytes = recv(*connection, buff, contentLength > READSIZE ? READSIZE : contentLength, 0);
+			contentLength -= READSIZE;
+
+			for (int i = 0; i < bytes; i++)
 			{
 				body += buff[i];
 			}
-			std::cout << body << "\n";
 		}
+		std::cout << body << "\n";
 	}
 
 	// Ignore everything else
