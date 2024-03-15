@@ -9,7 +9,7 @@ public:
 	~Socket();
 
 	void Listen(int max);
-	SOCKET* Accept();
+	SOCKET Accept();
 
 private:
 	SOCKET mSocket;
