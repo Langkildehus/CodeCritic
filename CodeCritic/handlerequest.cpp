@@ -1,9 +1,34 @@
 #include "pch.h"
 #define READSIZE 1024
 
-void HandlePOST(std::string& msg)
+void HandlePOST(SOCKET connection, std::string& msg, std::string& url)
 {
+	std::string username;
+	std::string password;
 
+
+
+	if (url == "/login")
+	{
+		std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 9\r\n\r\n";
+		send(connection, response.c_str(), response.size(), 0);
+
+		// Send response body
+		if (username == "Karl" && password == "medC")
+		{
+			send(connection, "Accpeted", 9, 0);
+		}
+		else
+		{
+			send(connection, "Rejected", 9, 0);
+		}
+	}
+	else if (url == "/signup")
+	{
+
+	}
+
+	closesocket(connection);
 }
 
 void HandleRequest(SOCKET connection)
@@ -229,8 +254,7 @@ void HandleRequest(SOCKET connection)
 			}
 		}
 
-		HandlePOST(body);
-		closesocket(connection);
+		HandlePOST(connection, body, url);
 		return;
 	}
 
