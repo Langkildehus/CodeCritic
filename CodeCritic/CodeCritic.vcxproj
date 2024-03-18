@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="handlerequest.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scripttestermain.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="tester.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="database.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="scripttester.h" />
     <ClInclude Include="socket.h" />

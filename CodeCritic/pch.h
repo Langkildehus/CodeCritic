@@ -14,3 +14,7 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
+
+// SQlite includes
+#include "stdio.h"
+#include "sqlite3.h"
