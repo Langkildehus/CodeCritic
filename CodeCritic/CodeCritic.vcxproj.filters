@@ -36,6 +36,9 @@
     <ClCompile Include="handlerequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scripttester.h">
@@ -50,9 +53,15 @@
     <ClInclude Include="socket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="website\index.html">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="website\script.js">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

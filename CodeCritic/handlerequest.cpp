@@ -1,34 +1,122 @@
 #include "pch.h"
 #define READSIZE 1024
 
-void HandlePOST(SOCKET connection, std::string& msg, std::string& url)
+void HandleGET(SOCKET connection, std::string& url)
 {
-	std::string username;
-	std::string password;
-
-
-
-	if (url == "/login")
+	// Check if GET request is requesting data or website
+	if (url.size() > 3 && url.substr(0, 4) == "/api")
 	{
-		std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 9\r\n\r\n";
+		// Read data for request
+		std::string data = "{\"Opgaver\": [\"Opgave1\", \"Opgave2\", \"Grim\"]}";
+		std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: 43\r\n\r\n";
+
+		// Send response header
 		send(connection, response.c_str(), response.size(), 0);
 
 		// Send response body
-		if (username == "Karl" && password == "medC")
+		send(connection, data.c_str(), data.size(), 0);
+		return;
+	}
+
+	// If we reach this point, the website is requested
+	// Generate path to requested file
+	std::string path = "website" + url;
+
+	// If path ends with '/', /index.html is assumed
+	if (path[path.size() - 1] == '/')
+	{
+		path += "index.html";
+	}
+
+	// Verify that file is valid (And allowed??)
+
+	// Send response header
+	send(connection, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
+
+	// Create stream to read requested file
+	std::ifstream file(path);
+	std::string line;
+	// Read line by line
+	while (std::getline(file, line))
+	{
+		// Manually add newline character at the end of every new line since they are not read from the file
+		line += "\n";
+
+		// Send requested as part of the body
+		send(connection, line.c_str(), line.size(), 0);
+	}
+
+	// Close filestream and socket connection
+	file.close();
+}
+
+void ParseLoginJson(std::string& msg, std::string& username, std::string& password)
+{
+	std::pair<int, int> lastTag = { -1, -1 };
+	int lastc = -1;
+	for (int c = 0; c < msg.size(); c++)
+	{
+		if (msg[c] != '"')
 		{
-			send(connection, "Accpeted", 9, 0);
+			continue;
+		}
+
+		if (lastc > 0)
+		{
+			if (lastTag.first > 0)
+			{
+				std::string sub = msg.substr(lastTag.first, lastTag.second);
+				if (sub == "user")
+				{
+					username = msg.substr(lastc + 1, c - lastc - 1);
+				}
+				else if (sub == "pwd")
+				{
+					password = msg.substr(lastc + 1, c - lastc - 1);
+				}
+				lastTag = { -1, -1 };
+			}
+			else
+			{
+				lastTag = { lastc + 1, c - lastc - 1 };
+			}
+
+			lastc = -1;
 		}
 		else
 		{
-			send(connection, "Rejected", 9, 0);
+			lastc = c;
+		}
+	}
+}
+
+void HandlePOST(SOCKET connection, std::string& msg, std::string& url)
+{
+	// Parse username and password from json
+	std::string username;
+	std::string password;
+	ParseLoginJson(msg, username, password);
+
+	if (url == "/login")
+	{
+		// Send header for response
+		std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
+		send(connection, response.c_str(), response.size(), 0);
+
+		// Check if credentials are valid
+		if (username == "Karl" && password == "medC")
+		{
+			send(connection, "{\"status\": \"Accepted\"}", 22, 0);
+		}
+		else
+		{
+			send(connection, "{\"status\": \"Rejected\"}", 22, 0);
 		}
 	}
 	else if (url == "/signup")
 	{
 
 	}
-
-	closesocket(connection);
 }
 
 void HandleRequest(SOCKET connection)
@@ -163,54 +251,7 @@ void HandleRequest(SOCKET connection)
 
 	if (type == "GET")
 	{
-		// Check if GET request is requesting data or website
-		if (url.size() > 3 && url.substr(0, 4) == "/api")
-		{
-			// Read data for request
-			std::string data = "{\"Opgaver\": [\"Opgave1\", \"Opgave2\", \"Grim\"]}";
-			std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: 43\r\n\r\n";
-
-			// Send response header
-			send(connection, response.c_str(), response.size(), 0);
-
-			// Send response body
-			send(connection, data.c_str(), data.size(), 0);
-			closesocket(connection);
-			return;
-		}
-
-		// If we reach this point, the website is requested
-		// Generate path to requested file
-		std::string path = "website" + url;
-
-		// If path ends with '/', /index.html is assumed
-		if (path[path.size() - 1] == '/')
-		{
-			path += "index.html";
-		}
-
-		// Verify that file is valid (And allowed??)
-
-		// Send response header
-		send(connection, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
-
-		// Create stream to read requested file
-		std::ifstream file(path);
-		std::string line;
-		// Read line by line
-		while (std::getline(file, line))
-		{
-			// Manually add newline character at the end of every new line since they are not read from the file
-			line += "\n";
-
-			// Send requested as part of the body
-			send(connection, line.c_str(), line.size(), 0);
-		}
-
-		// Close filestream and socket connection
-		file.close();
-		closesocket(connection);
-		return;
+		HandleGET(connection, url);
 	}
 	else if (type == "POST")
 	{
@@ -255,7 +296,6 @@ void HandleRequest(SOCKET connection)
 		}
 
 		HandlePOST(connection, body, url);
-		return;
 	}
 
 	// Ignore everything else
