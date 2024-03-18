@@ -17,6 +17,10 @@ xhr.onload = () => {
     }    
 };
 
+window.addEventListener("load", () => {
+    checkCookie();
+})
+
 /* Login pop-up modal */
 function modal(i) {
     document.getElementById(`modal${i}`).style.display = "block";
@@ -36,6 +40,7 @@ function login() {
     console.log(username);
     console.log(password);
     loginServer(username,password);
+    checkCookie();
 }
 
 /* POST login */
@@ -49,8 +54,8 @@ function loginServer(username, password) {
     });
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 201) {
-          if (JSON.parse(xhr.responseText) == "Accepted") {
-            console.log("Yes");
+          if (JSON.parse(xhr.responseText).status == "Accepted") {
+            setCookie("username", username, 1)
           } else {
             console.log("No");
           }
@@ -65,4 +70,41 @@ function loginServer(username, password) {
 function chooseAssignment(i) {
     /* Change iframe src */
     document.getElementById("frame").src = `opgaver/${i}.html`;
+}
+
+/* Cookie */
+
+function setCookie(cookieName, cookieValue, cookieExp) {
+    const date = new Date();
+    date.setTime(date.getTime() + cookieExp * 1000 * 60 * 60 * 24);
+    let expires = "expires="+date.toUTCString();
+    document.cookie = cookieName + "=" + cookieValue + ";" + expires + ";path=/" 
+}
+
+function getCookie(cookieName) {    
+    let name = cookieName + "=";
+    let ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
+function checkCookie() {
+    let user = getCookie("username");
+    if (user != "") {
+      document.getElementById("log").innerHTML = "Logout";
+      document.getElementById("log").onclick = "logout()";
+    }
+}
+
+function logout() {
+    setCookie("username", "", 0);
+    checkCookie();
 }
