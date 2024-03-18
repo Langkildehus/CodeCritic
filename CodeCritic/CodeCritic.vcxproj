@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="website\index.html" />
+    <None Include="website\script.js" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
