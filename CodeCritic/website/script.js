@@ -1,4 +1,3 @@
-console.log("Jeg duer");
 /* GET request - Opgaver */
 const xhr = new XMLHttpRequest();
 xhr.open("GET", "http://127.0.0.1/api/opgaver");
@@ -10,7 +9,7 @@ xhr.onload = () => {
         data = xhr.response;
         /* Add to 'Opgaver' to innerHTML */
         for (let i = 0; i < data.Opgaver.length; i++) {
-            document.getElementById("side").innerHTML += `<div>` + data.Opgaver[i] + `</div><br/><br/>`;
+            document.getElementById("side").innerHTML += `<div onclick="chooseAssignment('${data.Opgaver[i]}')">` + data.Opgaver[i] + `</div><br/><br/>`;
         }
         console.log(data);
     } else {
@@ -56,4 +55,10 @@ function loginServer(username, password) {
         }
       };
     xhr.send(body);
+}
+
+/* Choose assignment */
+function chooseAssignment(i) {
+    /* Change iframe src */
+    document.getElementById("frame").src = `opgaver/${i}.html`;
 }
