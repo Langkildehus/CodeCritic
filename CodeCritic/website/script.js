@@ -1,0 +1,68 @@
+/* GET request - Opgaver */
+const xhr = new XMLHttpRequest();
+xhr.open("GET", "http://127.0.0.1/api/opgaver");
+xhr.send();
+console.log("Hej");
+xhr.responseType = "json";
+xhr.onload = () => {
+    if (xhr.readyState == 4 && xhr.status == 200) {
+        data = xhr.response;
+        /* Add to 'Opgaver' to innerHTML */
+        for (let i = 0; i < data.Opgaver.length; i++) {
+            document.getElementById("side").innerHTML += `<div onclick="chooseAssignment('${data.Opgaver[i]}')">` + data.Opgaver[i] + `</div><br/><br/>`;
+        }
+        console.log(data);
+    } else {
+        console.log("Error");
+    }    
+};
+
+/* Login pop-up modal */
+function modal(i) {
+    document.getElementById(`modal${i}`).style.display = "block";
+}
+
+/* Modal close */
+function modalClose(i) {
+    document.getElementById(`modal${i}`).style.display = "none";
+}
+
+/* Modal login form */
+function login() {
+    var username = document.getElementById("user").value;
+    var password = document.getElementById("pwd").value;
+    document.getElementById("user").value = "";
+    document.getElementById("pwd").value = "";
+    console.log(username);
+    console.log(password);
+    loginServer(username,password);
+}
+
+/* POST login */
+function loginServer(username, password) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://127.0.0.1/login");
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    const body = JSON.stringify({
+        user: username,
+        pwd: password,
+    });
+    xhr.onload = () => {
+        if (xhr.readyState == 4 && xhr.status == 201) {
+          if (JSON.parse(xhr.responseText) == "Accepted") {
+            console.log("Yes");
+          } else {
+            console.log("No");
+          }
+        } else {
+          console.log(`Error: ${xhr.status}`);
+        }
+      };
+    xhr.send(body);
+}
+
+/* Choose assignment */
+function chooseAssignment(i) {
+    /* Change iframe src */
+    document.getElementById("frame").src = `opgaver/${i}.html`;
+}

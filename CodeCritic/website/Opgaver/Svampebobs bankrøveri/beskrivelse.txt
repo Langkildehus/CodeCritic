@@ -1,0 +1,45 @@
+Bankrøveri
+Svampebob planlægger et bankrøveri og har brug for din hjælp. Banken har 
+ 
+n bankbokse. I den 
+ 
+i-te bankboks er 
+ 
+ 
+b 
+i
+​
+  kroner. Han har ikke tid til at røve alle bankboksene, faktisk tror han ikke der er tid til at røve mere end én boks. Svampebob tror, at det er for mistænkeligt hvis han bare røver den boks med flest penge i. Han vil altså hellere gå efter den bankboks med næstflest penge i. Hvis Svampebob har success med sin plan, hvor mange penge vil han så få fingrene i?
+
+
+Input
+Den første linje indeholder ét heltal, 
+ 
+n, antallet af bankbokse.
+
+Den næste linje indeholder 
+ 
+n heltal, 
+ 
+1
+,
+ 
+2
+,
+…
+,
+ 
+ 
+b 
+1
+​
+ ,b 
+2
+​
+ ,…,b 
+n
+​
+ .
+
+Output
+Outputtet skal bestå af ét tal, nemlig mængden af pænge Svampebob røver.
