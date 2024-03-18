@@ -1,6 +1,11 @@
 #include "pch.h"
 #define READSIZE 1024
 
+void HandlePOST(std::string& msg)
+{
+
+}
+
 void HandleRequest(SOCKET connection)
 {
 	// The HTTP header needs to be read first, before we know the length of the body - if there is a body
@@ -96,8 +101,25 @@ void HandleRequest(SOCKET connection)
 		}
 		else if (c == 1)
 		{
-			// Second word is the url requested
-			url = segment;
+			// Parse the second word as the requested url
+
+			int i = 0;
+			for (char a : segment)
+			{
+				url += a;
+				if (i > 2)
+				{
+					if (url[i - 2] == '%' && url[i - 1] == '2' && url[i] == '0')
+					{
+						std::cout << "SPACE FOUND\n";
+						url.pop_back();
+						url.pop_back();
+						url[i - 2] = ' ';
+						i -= 2;
+					}
+				}
+				i++;
+			}
 		}
 		else
 		{
@@ -111,6 +133,8 @@ void HandleRequest(SOCKET connection)
 		}
 		c++;
 	}
+
+	std::cout << type << ':' << url << "\n";
 
 	if (type == "GET")
 	{
@@ -205,7 +229,7 @@ void HandleRequest(SOCKET connection)
 			}
 		}
 
-		std::cout << "POST request recieved:\n" << body << "\n";
+		HandlePOST(body);
 		closesocket(connection);
 		return;
 	}

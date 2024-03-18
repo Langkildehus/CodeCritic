@@ -27,6 +27,7 @@ int main()
 			continue;
 		}
 
-		HandleRequest(connection);
+		std::thread handleThread(HandleRequest, connection);
+		handleThread.detach();
 	}
 }
