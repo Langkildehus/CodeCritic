@@ -41,7 +41,7 @@ function login() {
 /* POST login */
 function loginServer(username, password) {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1/api/opgaver");
+    xhr.open("POST", "http://127.0.0.1/login");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     const body = JSON.stringify({
         user: username,
@@ -49,7 +49,11 @@ function loginServer(username, password) {
     });
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 201) {
-          console.log(JSON.parse(xhr.responseText));
+          if (JSON.parse(xhr.responseText) == "Accepted") {
+            console.log("Yes");
+          } else {
+            console.log("No");
+          }
         } else {
           console.log(`Error: ${xhr.status}`);
         }
