@@ -75,6 +75,5 @@ SOCKET Socket::Accept()
 		return NULL;
 	}
 
-	std::cout << "Accepted connection!\n";
 	return connection;
 }
