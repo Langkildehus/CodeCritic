@@ -40,7 +40,6 @@ function login() {
     console.log(username);
     console.log(password);
     loginServer(username,password);
-    checkCookie();
 }
 
 /* POST login */
@@ -62,14 +61,15 @@ function loginServer(username, password) {
         } else {
           console.log(`Error: ${xhr.status}`);
         }
-      };
+        checkCookie();
+    }
     xhr.send(body);
 }
 
 /* Choose assignment */
 function chooseAssignment(i) {
     /* Change iframe src */
-    document.getElementById("frame").src = `opgaver/${i}.html`;
+    document.getElementById("frame").src = `opgaver/${i}`;
 }
 
 /* Cookie */
@@ -99,12 +99,17 @@ function getCookie(cookieName) {
 function checkCookie() {
     let user = getCookie("username");
     if (user != "") {
-      document.getElementById("log").innerHTML = "Logout";
-      document.getElementById("log").onclick = "logout()";
+        document.getElementById("log").innerHTML = "Logout";
+        document.getElementById("log").onclick = logout;
+        console.log("ccf");
+    } else {
+        document.getElementById("log").innerHTML = "Login";
+        document.getElementById("log").setAttribute("onclick", "modal(1)");
     }
 }
 
 function logout() {
+    console.log("Logoutfeg");
     setCookie("username", "", 0);
     checkCookie();
 }

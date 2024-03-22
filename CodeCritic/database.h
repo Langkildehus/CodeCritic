@@ -8,14 +8,14 @@ public:
 	Database();
 	~Database();
 	
-	int createTable();
-	int deleteData(std::string tName);
+	int createTable(std::string& tname);
+	int deleteData(std::string& tName);
 	int insertData();
-	int updateData(std::string tName);
-	int selectData(std::string tName);
+	int insertUserData(std::string name, std::string password);
+	int selectData(std::string& tName);
+	int updateData(std::string& tName);
 	
 private:
-	//static int callback(void* NotUsed, int argc, char** argv, char** azColName);
 
 	sqlite3* DB;
 };
