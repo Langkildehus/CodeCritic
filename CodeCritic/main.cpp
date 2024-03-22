@@ -3,7 +3,7 @@
 #include "tester.h"
 #include "socket.h"
 
-void HandleRequest(SOCKET connection);
+void HandleRequest(const SOCKET connection);
 
 int main()
 {
@@ -20,13 +20,14 @@ int main()
 	while (true)
 	{
 		// Accept incoming connection
-		SOCKET connection = server.Accept();
+		const SOCKET connection = server.Accept();
 		if (connection == NULL)
 		{
 			std::cout << "Connection failed\n";
 			continue;
 		}
 
+		// Create thread for connection and detatch it
 		std::thread handleThread(HandleRequest, connection);
 		handleThread.detach();
 	}

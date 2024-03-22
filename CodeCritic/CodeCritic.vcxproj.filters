@@ -64,5 +64,11 @@
     <None Include="website\script.js">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="website\opgave.html">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="website\eksamenstyle.css">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

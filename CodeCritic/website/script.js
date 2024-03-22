@@ -1,6 +1,6 @@
 /* GET request - Opgaver */
 const xhr = new XMLHttpRequest();
-xhr.open("GET", "http://127.0.0.1/api/opgaver");
+xhr.open("GET", "http://127.0.0.1/opgaver");
 xhr.send();
 console.log("Hej");
 xhr.responseType = "json";

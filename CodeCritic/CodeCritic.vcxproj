@@ -41,7 +41,9 @@
     <ClInclude Include="tester.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="website\eksamenstyle.css" />
     <None Include="website\index.html" />
+    <None Include="website\opgave.html" />
     <None Include="website\script.js" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

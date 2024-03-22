@@ -1,14 +1,63 @@
 #include "pch.h"
 #define READSIZE 1024
 
-void HandleGET(SOCKET connection, std::string& url)
+bool FindTaskName(std::string& path, std::string& name)
 {
-	// Check if GET request is requesting data or website
-	if (url.size() > 3 && url.substr(0, 4) == "/api")
+	// Look for "opgaver" in path
+	const size_t index = path.find("opgaver");
+	if (index == std::string::npos || index + 8 > path.size())
+	{
+		return false;
+	}
+
+	// Look for next '/'
+	size_t end = path.find('/', index + 8);
+	if (end == std::string::npos)
+	{
+		end = path.size();
+	}
+
+	// Save name of task and redirect path to the generic html file
+	name = path.substr(index + 8, end - index - 8);
+	path = path.substr(0, index) + "opgave.html";
+	return true;
+}
+
+void ReplaceInLine(std::string& line, const std::vector<std::string>& description)
+{
+	size_t pos = line.find("{{");
+	size_t end = line.find("}}");
+	while (pos != std::string::npos && end != std::string::npos)
+	{
+		const std::string replace = line.substr(pos + 2, end - pos - 2);
+		if (replace == "Title")
+		{
+			line.replace(line.begin() + pos, line.begin() + end + 2, description[0]);
+		}
+		else if (replace == "Description")
+		{
+			std::string insert = description[1];
+			for (int c = 2; c < description.size(); c++)
+			{
+				insert += "\n" + description[c];
+			}
+			line.replace(line.begin() + pos, line.begin() + end + 2, insert);
+		}
+
+		pos = line.find("{{", end + 2);
+		end = line.find("}}", end + 2);
+	}
+}
+
+void HandleGET(const SOCKET connection, const std::string& url)
+{
+	// Check if GET request is requesting list of tasks
+	if (url.size() == 8 && url.substr(0, 8) == "/opgaver")
 	{
 		// Read data for request
-		std::string data = "{\"Opgaver\": [\"Opgave1\", \"Opgave2\", \"Grim\"]}";
-		std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: 43\r\n\r\n";
+		// CHANGE THIS TO LIST DIRECTORY WITH TASKS
+		const std::string data = "{\"Opgaver\": [\"Opgave1\", \"Opgave2\", \"Grim\"]}";
+		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: 43\r\n\r\n";
 
 		// Send response header
 		send(connection, response.c_str(), response.size(), 0);
@@ -18,27 +67,48 @@ void HandleGET(SOCKET connection, std::string& url)
 		return;
 	}
 
-	// If we reach this point, the website is requested
-	// Generate path to requested file
-	std::string path = "website" + url;
+	// Generate path to requested file. Paths that end with '/' assume /index.html
+	std::string name, path = (url[url.size() - 1] == '/' ? "website" + url + "index.html" : "website" + url);
 
-	// If path ends with '/', /index.html is assumed
-	if (path[path.size() - 1] == '/')
+	// Check if lines need to be replaced in sent file
+	const bool isDynamic = FindTaskName(path, name);
+
+	// If the file is dynamic, read the input to the dynamic file
+	std::vector<std::string> description;
+	if (isDynamic)
 	{
-		path += "index.html";
+		// Open file as an input file stream
+		std::ifstream dynamicFile("website/opgaver/" + name + "/description.txt");
+		std::string line;
+		while (std::getline(dynamicFile, line))
+		{
+			// Save all lines in a vector
+			description.push_back(line);
+		}
+		dynamicFile.close();
+
+		if (description.size() < 2)
+		{
+			// If an invalid dynamic file is requested, reject request
+			send(connection, "HTTP/1.1 403 Forbidden\r\n\r\n", 26, 0);
+			return;
+		}
 	}
-
-	// Verify that file is valid (And allowed??)
-
+	
 	// Send response header
 	send(connection, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
 
-	// Create stream to read requested file
+	// Create input file stream to read requested file
 	std::ifstream file(path);
 	std::string line;
-	// Read line by line
 	while (std::getline(file, line))
 	{
+		if (isDynamic)
+		{
+			// Replace dynamic parts of dynamic file
+			ReplaceInLine(line, description);
+		}
+
 		// Manually add newline character at the end of every new line since they are not read from the file
 		line += "\n";
 
@@ -46,61 +116,35 @@ void HandleGET(SOCKET connection, std::string& url)
 		send(connection, line.c_str(), line.size(), 0);
 	}
 
-	// Close filestream and socket connection
+	// Close filestream
 	file.close();
 }
 
-void ParseLoginJson(std::string& msg, std::string& username, std::string& password)
+void ParseLoginJson(const std::string& msg, std::string& username, std::string& password)
 {
-	std::pair<int, int> lastTag = { -1, -1 };
-	int lastc = -1;
-	for (int c = 0; c < msg.size(); c++)
-	{
-		if (msg[c] != '"')
-		{
-			continue;
-		}
+	// Find indexes in JSON for start and end of username
+	const size_t userIndex = msg.find("\"user\"");
+	const size_t userIndexStart = msg.find('"', userIndex + 6);
+	const size_t userIndexEnd = msg.find('"', userIndexStart + 1);
+	username = msg.substr(userIndexStart + 1, userIndexEnd - userIndexStart - 1);
 
-		if (lastc > 0)
-		{
-			if (lastTag.first > 0)
-			{
-				std::string sub = msg.substr(lastTag.first, lastTag.second);
-				if (sub == "user")
-				{
-					username = msg.substr(lastc + 1, c - lastc - 1);
-				}
-				else if (sub == "pwd")
-				{
-					password = msg.substr(lastc + 1, c - lastc - 1);
-				}
-				lastTag = { -1, -1 };
-			}
-			else
-			{
-				lastTag = { lastc + 1, c - lastc - 1 };
-			}
-
-			lastc = -1;
-		}
-		else
-		{
-			lastc = c;
-		}
-	}
+	// Find indexes in JSON for start and end of password
+	const size_t passwordIndex = msg.find("\"pwd\"", userIndexEnd + 1);
+	const size_t passwordIndexStart = msg.find('"', passwordIndex + 5);
+	const size_t passwordIndexEnd = msg.find('"', passwordIndexStart + 1);
+	password = msg.substr(passwordIndexStart + 1, passwordIndexEnd - passwordIndexStart - 1);
 }
 
-void HandlePOST(SOCKET connection, std::string& msg, std::string& url)
+void HandlePOST(const SOCKET connection, const std::string& msg, const std::string& url)
 {
 	// Parse username and password from json
-	std::string username;
-	std::string password;
+	std::string username, password;
 	ParseLoginJson(msg, username, password);
 
 	if (url == "/login")
 	{
 		// Send header for response
-		std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
+		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
 
 		// Check if credentials are valid
@@ -119,78 +163,69 @@ void HandlePOST(SOCKET connection, std::string& msg, std::string& url)
 	}
 }
 
-void HandleRequest(SOCKET connection)
+void HandleRequest(const SOCKET connection)
 {
 	// The HTTP header needs to be read first, before we know the length of the body - if there is a body
-	// Create buffer for reading the socket & string to save header in
+	// Create buffer for reading from the socket & a string to save header in
 	char buff[READSIZE];
 	std::string req = "";
 
 	// overRead keeps track of how many bytes into a potential HTTP body we have read
 	int overRead = 0;
 
-	// Keep track of last three characters read to look for CRLF (\r\n\r\n)
-	char prev[3] = { '0', '0', '0' };
-
 	// Read first section of bytes from the windows socket
 	int bytes = recv(connection, buff, READSIZE, 0);
-	while (bytes)
+	while (bytes > 0)
 	{
-		bool CRLF = false;
+		// Send buffer to std::string
+		const std::string sbuff = buff;
 
-		// Read one character at a time from the buffer
-		for (int c = 0; c < bytes; c++)
+		// Check for CRLF
+		const size_t CRLFIndex = sbuff.find("\r\n\r\n");
+		if (CRLFIndex != std::string::npos)
 		{
-			// Read untill we find CRLF (\r\n\r\n)
-			if (prev[0] == '\r' && prev[1] == '\n' && prev[2] == '\r' && buff[c] == '\n')
-			{
-				// CRLF found -> end of header
-				// Update overRead to the amount of bytes left in the buffer for a potential body
-				overRead = READSIZE - c - 1;
-				CRLF = true;
-				break;
-			}
-
-			// Update prev three characters
-			prev[0] = prev[1];
-			prev[1] = prev[2];
-			prev[2] = buff[c];
-
-			// Save current character to header
-			req += buff[c];
-		}
-
-		if (CRLF)
-		{
-			// If CRLF is found, we are done reading the HTTP header
-			// We can't read the body yet, since there is no guarantee for a body to sent with the request
+			req += sbuff.substr(0, CRLFIndex + 3);
+			overRead = READSIZE - CRLFIndex - 4;
 			break;
 		}
+
+		// No CRLF found, save entire buffer into header
+		req += sbuff;
 
 		// Read next section of bytes
 		bytes = recv(connection, buff, READSIZE, 0);
 	}
 
 	// Now that the header has been read, we need to parse it
-	std::stringstream ss(req);
+	std::stringstream reqss(req);
 	std::string segment;
 	std::vector<std::string> header;
 
-	// If there is a body, save it's length
+	// Save important information from header
 	int contentLength = 0;
+	std::string username;
 
 	// Go through every line in the header
-	while (!std::getline(ss, segment, '\n').eof())
+	while (!std::getline(reqss, segment, '\n').eof())
 	{
 		// Save the header where every element in the vector is a new line
 		header.push_back(segment);
 
 		// Check if we find "Content-Length" in the header
-		// If it is never found, no body has been sent with the request
-		if (header.size() > 1 && header[header.size() - 1].substr(0, 16) == "Content-Length: ")
+		const size_t contentLengthIndex = segment.find("Content-Length:");
+		if (contentLengthIndex != std::string::npos)
 		{
-			// Read the value of "Content-Length" and save it
-			contentLength = std::stoi(segment.substr(16));
+			// Save Content-Length
+			contentLength = std::stoi(segment.substr(contentLengthIndex + 15));
+		}
+
+		// Check if we find "Cookie" in the header
+		const size_t cookieIndex = segment.find("Cookie:");
+		if (cookieIndex != std::string::npos)
+		{
+			const std::string cookie = segment.substr(cookieIndex + 7);
+			const size_t usernameIndex = cookie.find("username=") + 9;
+			username = cookie.substr(usernameIndex);
 		}
 	}
 
@@ -200,51 +235,17 @@ void HandleRequest(SOCKET connection)
 		return;
 	}
 
-	// Parse the first line of the header, since it contains multiple important pieces of information
-	std::stringstream generalHeader(header[0]);
-	std::string type;
-	std::string url;
-	int c = 0;
-	while (!std::getline(generalHeader, segment, ' ').eof())
-	{
-		if (c == 0)
-		{
-			// First word is the type of request (GET, POST...)
-			type = segment;
-		}
-		else if (c == 1)
-		{
-			// Parse the second word as the requested url
+	// Find indexes for type of request, the url requested and the http version
+	const size_t typeIndex = header[0].find(' ');
+	const size_t urlIndex = header[0].find(' ', typeIndex + 1);
 
-			int i = 0;
-			for (char a : segment)
-			{
-				url += a;
-				if (i > 2)
-				{
-					if (url[i - 2] == '%' && url[i - 1] == '2' && url[i] == '0')
-					{
-						std::cout << "SPACE FOUND\n";
-						url.pop_back();
-						url.pop_back();
-						url[i - 2] = ' ';
-						i -= 2;
-					}
-				}
-				i++;
-			}
-		}
-		else
-		{
-			// Last word is the HTTP version
-			if (segment != "HTTP/1.1")
-			{
-				std::cout << "Ignoring request. Expected HTTP/1.1\n";
-				closesocket(connection);
-				return;
-			}
-		}
-		c++;
+	const std::string type = header[0].substr(0, typeIndex);
+	const std::string url = header[0].substr(typeIndex + 1, urlIndex - typeIndex - 1);
+	if (header[0].substr(urlIndex + 1, header[0].size() - urlIndex - 2) != "HTTP/1.1")
+	{
+		std::cout << "Ignoring request. Expected HTTP/1.1\n";
+		closesocket(connection);
+		return;
 	}
 
 	std::cout << type << ':' << url << "\n";
