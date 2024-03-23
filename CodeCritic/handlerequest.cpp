@@ -54,10 +54,27 @@ void HandleGET(const SOCKET connection, const std::string& url)
 	// Check if GET request is requesting list of tasks
 	if (url.size() == 8 && url.substr(0, 8) == "/opgaver")
 	{
-		// Read data for request
-		// CHANGE THIS TO LIST DIRECTORY WITH TASKS
-		const std::string data = "{\"Opgaver\": [\"Opgave1\", \"Opgave2\", \"Grim\"]}";
-		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: 43\r\n\r\n";
+		// Read folders in directory
+		std::string data = "{\"Opgaver\": [";
+		for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator("website/opgaver"))
+		{
+			// Only look for directories
+			if (!entry.is_directory())
+				continue;
+
+			// Find directory name
+			const std::string dir = entry.path().string();
+			const size_t folderIndex = dir.find_last_of("\\");
+
+			// Append directory (task) to the string as JSON
+			data += '"' + dir.substr(folderIndex + 1) + "\", ";
+		}
+		data.pop_back(); data.pop_back(); // Remove last two characters: ", "
+		data += "]}";
+
+		// Create response header
+		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: "
+			+ std::to_string(data.size()) + "\r\n\r\n";
 
 		// Send response header
 		send(connection, response.c_str(), response.size(), 0);
