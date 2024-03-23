@@ -5,15 +5,15 @@
 class Socket
 {
 public:
-	Socket(std::string strip_, int port_);
+	Socket(const std::string strip_, const int port_);
 	~Socket();
 
-	void Listen(int max);
-	SOCKET Accept();
+	void Listen(const int max);
+	SOCKET Accept() const;
 
 private:
 	SOCKET mSocket;
-	std::string ipstr;
 	LPCWSTR ip;
-	int port;
+	const std::string ipstr;
+	const int port;
 };

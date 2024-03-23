@@ -100,6 +100,7 @@ void HandleGET(const SOCKET connection, const std::string& url)
 		while (std::getline(dynamicFile, line))
 		{
 			// Save all lines in a vector
+			line += '\n';
 			description.push_back(line);
 		}
 		dynamicFile.close();
@@ -127,7 +128,7 @@ void HandleGET(const SOCKET connection, const std::string& url)
 		}
 
 		// Manually add newline character at the end of every new line since they are not read from the file
-		line += "\n";
+		line += '\n';
 
 		// Send requested as part of the body
 		send(connection, line.c_str(), line.size(), 0);

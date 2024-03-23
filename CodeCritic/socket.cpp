@@ -2,12 +2,12 @@
 
 #include "socket.h"
 
-Socket::Socket(std::string ipstr_, int port_)
+Socket::Socket(const std::string ipstr_, const int port_)
 	: ipstr(ipstr_), port(port_)
 {
 	// Start WSA (WinSockApi)
 	WSADATA wsaData;
-	WORD version = MAKEWORD(2, 2);
+	const WORD version = MAKEWORD(2, 2);
 	int wsaErr = WSAStartup(version, &wsaData);
 	if (wsaErr != 0)
 	{
@@ -24,12 +24,10 @@ Socket::Socket(std::string ipstr_, int port_)
 		WSACleanup();
 		exit(-2);
 	}
-
 	
 	// Convert ip from std::string to windows' widechar*
-	std::wstring ipwstr = std::wstring(ipstr.begin(), ipstr.end());
+	const std::wstring ipwstr = std::wstring(ipstr.begin(), ipstr.end());
 	ip = ipwstr.c_str();
-
 
 	// Bind socket to ip & port
 	sockaddr_in service;
@@ -53,8 +51,9 @@ Socket::~Socket()
 	WSACleanup();
 }
 
-void Socket::Listen(int max)
+void Socket::Listen(const int max)
 {
+	// Start listening for connections
 	if (listen(mSocket, max) == SOCKET_ERROR)
 	{
 		std::cout << "Failed listening on socket: " << WSAGetLastError() << "\n";
@@ -66,9 +65,9 @@ void Socket::Listen(int max)
 	std::cout << "Socket listening on: " << ipstr << ":" << port << "\n";
 }
 
-SOCKET Socket::Accept()
+SOCKET Socket::Accept() const
 {
-	SOCKET connection = accept(mSocket, NULL, NULL);
+	const SOCKET connection = accept(mSocket, NULL, NULL);
 	if (connection == INVALID_SOCKET)
 	{
 		std::cout << "Accept failed - ignoring connection: " << WSAGetLastError() << "\n";
