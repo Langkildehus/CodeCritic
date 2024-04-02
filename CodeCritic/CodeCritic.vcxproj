@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Database.cpp" />
+    <ClCompile Include="database.cpp" />
     <ClCompile Include="handlerequest.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scripttestermain.cpp" />

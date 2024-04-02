@@ -18,11 +18,13 @@ int main()
 	db.insertUserData(n1, p);
 	db.insertUserData(n2, p);
 	db.insertUserData(n1, p);
+
+
 	//const std::string testFile = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";
-	const std::string testFile = "TestScript";
+	std::string testFile = "TestScript";
 
 	Tester tester{};
-	//tester.RunTest(testFile);
+	tester.RunTest(std::move(testFile));
 
 	// Start listening on webserver
 	Socket server = Socket("127.0.0.1", 80);

@@ -14,7 +14,7 @@ Tester::~Tester()
 	// Stop threadpool?
 }
 
-void Tester::RunTest(const std::string& name) const
+void Tester::RunTest(const std::string name) const
 {
 	// Spawn thread to run tests on
 	// Allows HTTP server to keep running while the test is running
@@ -24,18 +24,34 @@ void Tester::RunTest(const std::string& name) const
 
 // ---------- PRIVATE ----------
 
-void Tester::StartTest(const std::string& name) const
+void Tester::StartTest(const std::string name) const
 {
-	std::string path = "C:\\dev\\CodeCritic\\Opgaver\\" + name + "\\" + name + ".cpp";
+	const std::string path = "C:\\dev\\CodeCritic\\Opgaver\\" + name + "\\";
+    const std::string sJudgePath = path + "judge.exe";
 
 	// Compile submission
-	std::string compilePath = Compile(path);
+	const std::string compilePath = Compile(path + name + ".cpp");
 
-	// Run test
-	int result = Test(compilePath);
+    // Convert file paths to LPCWSTR
+    const std::wstring wTestPathName = std::wstring(compilePath.begin(), compilePath.end());
+    const std::wstring wJudgePathName = std::wstring(sJudgePath.begin(), sJudgePath.end());
+    const LPCWSTR testPath = wTestPathName.c_str();
+    const LPCWSTR judgePath = wJudgePathName.c_str();
+
+    // Read config
+    //
+    //
+    //
+
+	// Run test cases
+    int points = 0;
+    for (uint c = 0; c < 10; c++)
+    {
+    	points += Test(judgePath, testPath, 1);
+    }
 
 	// Save test result in DB
-	SaveScore(result);
+	SaveScore(points);
 
 	// Remove compiled file after all tests
 	Delete(compilePath);
@@ -44,16 +60,16 @@ void Tester::StartTest(const std::string& name) const
 std::string Tester::Compile(const std::string& path) const
 {
 	// change filepath .cpp to .exe for output file
-	std::string compilePath = path.substr(0, path.size() - 4) + ".exe";
+	const std::string compilePath = path.substr(0, path.size() - 4) + ".exe";
 
 	// Compile file on given path
 	const std::string cmd = "g++ --std=c++17 -O2 -o " + compilePath + " " + path;
-	//std::system(cmd.c_str());
+	std::system(cmd.c_str());
 
 	return compilePath;
 }
 
-void Tester::SaveScore(int score) const
+void Tester::SaveScore(const int score) const
 {
 	// Save score to DB
 }
@@ -64,105 +80,86 @@ void Tester::Delete(const std::string& deletePath) const
 	std::remove(deletePath.c_str());
 }
 
-int Tester::Test(const std::string& compiledPath) const
+int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const int timeLimit) const
 {
-	// Run test on file
+    // https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
-
-    // int timeLimit,
+    // Prepare test
+    //std::vector<std::string> inputs;
+    //std::vector<std::string> outputs;
     // int (*Test)(std::vector<std::string>&inputs,
     // std::vector<std::string>&outputs)
     
-    // Convert filepath to LPCWSTR
-    //std::wstring wPathName = std::wstring(compiledPath.begin(), compiledPath.end());
-    //LPCWSTR path = wPathName.c_str();
+    // Create pipes for std I/O
+    HANDLE childStdInRead = NULL;
+    HANDLE childStdInWrite = NULL;
+    HANDLE childStdOutRead = NULL;
+    HANDLE childStdOutWrite = NULL;
 
-    //std::vector<std::string> inputs;
-    //std::vector<std::string> outputs;
+    SECURITY_ATTRIBUTES security;
+    security.nLength = sizeof(SECURITY_ATTRIBUTES);
+    security.bInheritHandle = TRUE;
+    security.lpSecurityDescriptor = NULL;
 
-    //// Create pipes for std I/O
-    //HANDLE inRead = 0;
-    //HANDLE inWrite = 0;
-    //HANDLE outRead = 0;
-    //HANDLE outWrite = 0;
+    // Create pipe for the child stdout
+    if (!CreatePipe(&childStdOutRead, &childStdOutWrite, &security, 0))
+    {
+        return -1;
+    }
+    // read handle to stdout should not be inherited
+    if (!SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0))
+    {
+        return -2;
+    }
 
-    //SECURITY_ATTRIBUTES security;
-    //security.nLength = sizeof(SECURITY_ATTRIBUTES);
-    //security.bInheritHandle = NULL;
-    //security.bInheritHandle = TRUE;
-    //security.lpSecurityDescriptor = NULL;
+    // Create pipe for the child stdin
+    if (!CreatePipe(&childStdInRead, &childStdInWrite, &security, 0))
+    {
+        return -3;
+    }
+    // read handle to stdin should not be inherited
+    if (!SetHandleInformation(childStdInWrite, HANDLE_FLAG_INHERIT, 0))
+    {
+        return -4;
+    }
 
-    //if (!CreatePipe(&outRead, &outWrite, &security, 0))
-    //{
-    //    //res.msg = "Error: StdoutRead CreatePipe";
-    //    //res.status = -1;
-    //    //return res;
-    //    return -1;
-    //}
-    //if (!SetHandleInformation(outRead, HANDLE_FLAG_INHERIT, 0))
-    //{
-    //    //res.msg = "Stdout SetHandleInformation";
-    //    //res.status = -2;
-    //    //return res;
-    //    return -2;
-    //}
-    //if (!CreatePipe(&inRead, &inWrite, &security, 0))
-    //{
-    //    //res.msg = "Stdin CreatePipe";
-    //    //res.status = -3;
-    //    //return res;
-    //    return -3;
-    //}
-    //if (!SetHandleInformation(inWrite, HANDLE_FLAG_INHERIT, 0))
-    //{
-    //    //res.msg = "Stdin SetHandleInformation";
-    //    //res.status = -4;
-    //    //return res;
-    //    return -4;
-    //}
+    // Specify stdin and stdout handles
+    STARTUPINFO startInfo;
+    ZeroMemory(&startInfo, sizeof(STARTUPINFO));
+    startInfo.cb = sizeof(STARTUPINFO);
+    startInfo.hStdError = childStdOutWrite;
+    startInfo.hStdOutput = childStdOutWrite;
+    startInfo.hStdInput = childStdInRead;
+    startInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-    //// Prepare to start target script
-    //STARTUPINFO startInfo;
-    //ZeroMemory(&startInfo, sizeof(startInfo));
-    //startInfo.cb = sizeof(startInfo);
-    //startInfo.hStdError = outWrite;
-    //startInfo.hStdOutput = outWrite;
-    //startInfo.hStdInput = inRead;
-    //startInfo.dwFlags |= STARTF_USESTDHANDLES;
-
-    //PROCESS_INFORMATION processInfo;
-    //ZeroMemory(&processInfo, sizeof(processInfo));
+    PROCESS_INFORMATION processInfo;
+    ZeroMemory(&processInfo, sizeof(PROCESS_INFORMATION));
 
     //// Start the script as a child process
     //// Microsoft documentation:
     //// https://learn.microsoft.com/en-us/windows/win32/procthread/creating-processes
-    //if (!CreateProcess(
-    //    path,           // Path to binary
-    //    NULL,           // Command line
-    //    NULL,           // Process handle not inheritable
-    //    NULL,           // Thread handle not inheritable
-    //    TRUE,           // Set handle inheritance
-    //    0,              // No creation flags
-    //    NULL,           // Use parent's environment block
-    //    NULL,           // Use parent's starting directory 
-    //    &startInfo,     // Pointer to STARTUPINFO
-    //    &processInfo    // Pointer to PROCESS_INFORMATION
-    //))
-    //{
-    //    //res.msg = "CreateProcess failed " + GetLastError();
-    //    //res.status = -5;
-    //    //return res;
-    //    return -5;
-    //}
+    const BOOL success = CreateProcess(
+        testPath,           // Path to binary
+        NULL,           // Command line
+        NULL,           // Process handle not inheritable
+        NULL,           // Thread handle not inheritable
+        TRUE,           // Set handle inheritance
+        0,              // No creation flags
+        NULL,           // Use parent's environment block
+        NULL,           // Use parent's starting directory 
+        &startInfo,     // Pointer to STARTUPINFO
+        &processInfo    // Pointer to PROCESS_INFORMATION
+    );
 
-    //// Close handles
-    //CloseHandle(outWrite);
-    //CloseHandle(inRead);
+    if (!success)
+    {
+        return -5;
+    }
 
-    //
-    //
-    //
-    //
+    // Close no longer needed handles
+    CloseHandle(childStdOutWrite);
+    CloseHandle(childStdInRead);
+
     //int outputCode = Test(inputs, outputs);
 
 
@@ -191,26 +188,10 @@ int Tester::Test(const std::string& compiledPath) const
     //WaitForSingleObject(processInfo.hProcess, timeLimit);
 
     //// Close all other handles
-    //CloseHandle(processInfo.hProcess);
-    //CloseHandle(processInfo.hThread);
-    //CloseHandle(inWrite);
-    //CloseHandle(outRead);
-    //return outputCode;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    CloseHandle(processInfo.hProcess);
+    CloseHandle(processInfo.hThread);
+    CloseHandle(childStdInWrite);
+    CloseHandle(childStdOutRead);
 
 	// Return result of test
 	return 0;

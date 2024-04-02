@@ -1,5 +1,7 @@
 #pragma once
 
+typedef unsigned int uint;
+
 #include <iostream>
 #include <string>
 #include <vector>
