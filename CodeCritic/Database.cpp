@@ -24,44 +24,13 @@ Database::Database()
 		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"USERNAME   TEXT UNIQUE NOT NULL, "
 		"PASSWORD	TEXT NOT NULL);";
-	{
 		/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
 		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
-	}
 }
 
 Database::~Database()
 {
 	sqlite3_close(DB);
-}
-
-int Database::createUsers()
-{
-	char* messageError;
-
-	std::string sql = "CREATE TABLE IF NOT EXISTS Users("
-		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"USERNAME   TEXT UNIQUE NOT NULL, "
-		"PASSWORD	TEXT NOT NULL);";
-
-
-	try
-	{
-		/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
-		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
-		if (exit != SQLITE_OK) {
-			std::cerr << "Error in createTable function\n" << messageError << "\n";
-			sqlite3_free(messageError);
-		}
-		else
-			std::cout << "Table created Successfully" << "\n";
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << e.what();
-	}
-
-	return 0;
 }
 
 int Database::createTable(std::string& tname)

@@ -9,14 +9,6 @@ Database db; //create a instance of Database
 
 int main()
 {
-	
-	std::string str = "Users";
-	db.createUsers();
-	std::string n1 = "hej1";
-	std::string p = "Magnus";
-	std::string n2 = "hej2";
-	
-	db.checkLogin(n1, p);
 
 	//const std::string testFile = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";
 	std::string testFile = "TestScript";

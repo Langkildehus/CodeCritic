@@ -8,7 +8,6 @@ public:
 	Database();
 	~Database();
 
-	int createUsers();
 	int createTable(std::string& tname);
 	int deleteData(std::string& tName);
 	int insertData();
