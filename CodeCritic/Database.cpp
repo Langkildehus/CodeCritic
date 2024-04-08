@@ -14,14 +14,46 @@ static int callback(void* NotUsed, int argc, char** argv, char** azColName)
 
 	return 0;
 }
+
 Database::Database() 
 {
 	int exit = sqlite3_open(R"(Database.db)", &DB);
+	std::string sql = "PRAGMA foreign_keys = ON;";
+	sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
 }
 
 Database::~Database()
 {
 	sqlite3_close(DB);
+}
+
+int Database::createUsers()
+{
+	char* messageError;
+
+	std::string sql = "CREATE TABLE IF NOT EXISTS Users("
+		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+		"USERNAME      TEXT UNIQUE NOT NULL, "
+		"PASSWORD  TEXT NOT NULL);";
+
+
+	try
+	{
+		/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
+		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+		if (exit != SQLITE_OK) {
+			std::cerr << "Error in createTable function\n" << messageError << "\n";
+			sqlite3_free(messageError);
+		}
+		else
+			std::cout << "Table created Successfully" << "\n";
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what();
+	}
+
+	return 0;
 }
 
 int Database::createTable(std::string& tname)
@@ -30,8 +62,9 @@ int Database::createTable(std::string& tname)
 
 	std::string sql = "CREATE TABLE IF NOT EXISTS " + tname + "("
 		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"NAME      TEXT UNIQUE NOT NULL, "
-		"PASSWORD  TEXT NOT NULL);";
+		"UserID     INTEGER UNIQUE NOT NULL, "
+		"Points		INTEGER NOT NULL)"
+		"FOREIGN KEY(UserID) REFERENCES Users(ID);";
 
 
 	try
@@ -72,11 +105,11 @@ int Database::insertData()
 	return 0;
 }
 
-int Database::insertUserData(std::string name, std::string password)
+bool Database::signup(std::string& username, std::string& password)
 {
 	char* messageError;
 
-	std::string sql("INSERT INTO Users (NAME, PASSWORD) VALUES('"+ name + "','" + password +"');");
+	std::string sql("INSERT INTO Users (USERNAME, PASSWORD) VALUES('"+ username + "','" + password +"');");
 
 
 	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
@@ -84,11 +117,33 @@ int Database::insertUserData(std::string name, std::string password)
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertUserData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
+		return false;
 	}
 	else
 		std::cout << "Records inserted Successfully!" << "\n";
 
-	return 0;
+	return true;
+}
+
+bool Database::checkLogin(std::string& username, std::string& Password)
+{
+	sqlite3_stmt* stmt;
+	std::string sql = "SELECT PASSWORD FROM Users WHERE USERNAME= '" + username + "';";
+	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+
+	if (exit != SQLITE_OK)
+	{
+		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
+		return false;
+	}
+	sqlite3_step(stmt);
+	if (Password == std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))))
+	{
+		std::cout << "win\n";
+		return true;
+	}
+	std::cout << "fail\n";
+	return false;
 }
 
 int Database::updateData(std::string& tName)
