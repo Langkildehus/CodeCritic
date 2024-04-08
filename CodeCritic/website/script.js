@@ -29,6 +29,7 @@ function modal(i) {
 /* Modal close */
 function modalClose(i) {
     document.getElementById(`modal${i}`).style.display = "none";
+    document.getElementById("error").innerHTML = "";
 }
 
 /* Modal login form */
@@ -54,9 +55,11 @@ function loginServer(username, password) {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 201) {
           if (JSON.parse(xhr.responseText).status == "Accepted") {
-            setCookie("username", username, 1)
+            setCookie("username", username, 1);
+            modalClose(1);
           } else {
             console.log("No");
+            document.getElementById("error").innerHTML = "Login failed";
           }
         } else {
           console.log(`Error: ${xhr.status}`);
@@ -70,6 +73,37 @@ function loginServer(username, password) {
 function chooseAssignment(i) {
     /* Change iframe src */
     document.getElementById("frame").src = `opgaver/${i}`;
+}
+
+function signup() {
+    var username = document.getElementById("user").value;
+    var password = document.getElementById("pwd").value;
+
+    document.getElementById("user").value = "";
+    document.getElementById("pwd").value = "";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://127.0.0.1/signup");
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    const body = JSON.stringify({
+        user: username,
+        pwd: password,
+    });
+    xhr.onload = () => {
+        if (xhr.readyState == 4 && xhr.status == 201) {
+          if (JSON.parse(xhr.responseText).status == "Accepted") {
+            setCookie("username", username, 1)
+            modalClose(1);
+          } else {
+            console.log("No");
+            document.getElementById("error").innerHTML = "Login failed";
+          }
+        } else {
+          console.log(`Error: ${xhr.status}`);
+        }
+        checkCookie();
+    }
+    xhr.send(body);
 }
 
 /* Cookie */
@@ -113,3 +147,4 @@ function logout() {
     setCookie("username", "", 0);
     checkCookie();
 }
+

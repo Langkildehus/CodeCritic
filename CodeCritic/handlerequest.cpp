@@ -305,6 +305,7 @@ void HandleRequest(const SOCKET connection)
 		if (cookieIndex != std::string::npos)
 		{
 			const std::string cookie = segment.substr(cookieIndex + 7);
+			std::cout << cookie << "\n";
 			const size_t usernameIndex = cookie.find("username=") + 9;
 			username = cookie.substr(usernameIndex);
 		}
