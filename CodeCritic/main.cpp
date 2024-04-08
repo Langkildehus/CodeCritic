@@ -5,20 +5,20 @@
 #include "database.h"
 
 void HandleRequest(const SOCKET connection);
+Database db; //create a instance of Database
 
 int main()
 {
 	
-	Database db; //create a inctens of Database
 	std::string str = "Users";
-	db.createTable(str);
+	db.createUsers();
 	std::string n1 = "hej1";
 	std::string p = "Magnus";
 	std::string n2 = "hej2";
 	db.insertUserData(n1, p);
 	db.insertUserData(n2, p);
 	db.insertUserData(n1, p);
-
+	db.checkLogin(n1, p);
 
 	//const std::string testFile = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";
 	std::string testFile = "TestScript";
