@@ -1,5 +1,10 @@
 #include "pch.h"
+
+#include "database.h"
+
 #define READSIZE 1024
+
+extern Database db;
 
 bool FindTaskName(std::string& path, std::string& name)
 {
@@ -25,25 +30,61 @@ bool FindTaskName(std::string& path, std::string& name)
 
 void ReplaceInLine(std::string& line, const std::vector<std::string>& description)
 {
+	// Array of all keywords to look for
+	std::string replaceKeys[] = {
+		"Title", "Description", "Input", "Output", "ExampleInput", "ExampleOutput", "Constraints"
+	};
+
+	// Find next segment to replace
 	size_t pos = line.find("{{");
 	size_t end = line.find("}}");
 	while (pos != std::string::npos && end != std::string::npos)
 	{
 		const std::string replace = line.substr(pos + 2, end - pos - 2);
-		if (replace == "Title")
+
+		for (const std::string& keyword : replaceKeys)
 		{
-			line.replace(line.begin() + pos, line.begin() + end + 2, description[0]);
-		}
-		else if (replace == "Description")
-		{
-			std::string insert = description[1];
-			for (int c = 2; c < description.size(); c++)
+			// Find keyword we are replacing
+			if (keyword != replace)
 			{
-				insert += "\n" + description[c];
+				continue;
 			}
+
+			std::string insert = "";
+			const std::string keywordTag = "--" + keyword + "--\n";
+			bool keywordFound = false;
+			for (int c = 0; c < description.size(); c++)
+			{
+				if (description[c] == keywordTag)
+				{
+					// We found keyword. We are done if it has been seen before, else start saving lines
+					if (keywordFound)
+					{
+						break;
+					}
+					keywordFound = true;
+					continue;
+				}
+
+				// Skip untill keyword is found in html file
+				if (!keywordFound)
+				{
+					continue;
+				}
+
+				// Save line to insert
+				if (insert.size() > 0)
+				{
+					insert += "<br>";
+				}
+				insert += description[c];
+			}
+
 			line.replace(line.begin() + pos, line.begin() + end + 2, insert);
+			break;
 		}
 
+		// Find next segment to replace
 		pos = line.find("{{", end + 2);
 		end = line.find("}}", end + 2);
 	}
@@ -125,10 +166,14 @@ void HandleGET(const SOCKET connection, const std::string& url)
 		{
 			// Replace dynamic parts of dynamic file
 			ReplaceInLine(line, description);
+			line += "<br>";
+		}
+		else
+		{
+			// Manually add newline character at the end of every new line since they are not read from the file
+			line += "\n";
 		}
 
-		// Manually add newline character at the end of every new line since they are not read from the file
-		line += '\n';
 
 		// Send requested as part of the body
 		send(connection, line.c_str(), line.size(), 0);
@@ -166,7 +211,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		send(connection, response.c_str(), response.size(), 0);
 
 		// Check if credentials are valid
-		if (username == "Karl" && password == "medC")
+		if (db.checkLogin(username, password))
 		{
 			send(connection, "{\"status\": \"Accepted\"}", 22, 0);
 		}
@@ -177,7 +222,25 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 	}
 	else if (url == "/signup")
 	{
+		// Send header for response
+		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
+		send(connection, response.c_str(), response.size(), 0);
 
+		// Sign user up if username is available and credentials are valid
+		if (db.signup(username, password))
+		{
+			send(connection, "{\"status\": \"Accepted\"}", 22, 0);
+		}
+		else
+		{
+			send(connection, "{\"status\": \"Rejected\"}", 22, 0);
+		}
+	}
+	else
+	{
+		std::cout << "POST request could not be handled!\n";
+		const std::string response = "HTTP/1.1 400 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
+		send(connection, response.c_str(), response.size(), 0);
 	}
 }
 
