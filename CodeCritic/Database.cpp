@@ -15,11 +15,19 @@ static int callback(void* NotUsed, int argc, char** argv, char** azColName)
 	return 0;
 }
 
-Database::Database() 
+Database::Database()
 {
 	int exit = sqlite3_open(R"(Database.db)", &DB);
 	std::string sql = "PRAGMA foreign_keys = ON;";
 	sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
+	std::string sql = "CREATE TABLE IF NOT EXISTS Users("
+		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+		"USERNAME   TEXT UNIQUE NOT NULL, "
+		"PASSWORD	TEXT NOT NULL);";
+	{
+		/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
+		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
+	}
 }
 
 Database::~Database()
@@ -33,8 +41,8 @@ int Database::createUsers()
 
 	std::string sql = "CREATE TABLE IF NOT EXISTS Users("
 		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"USERNAME      TEXT UNIQUE NOT NULL, "
-		"PASSWORD  TEXT NOT NULL);";
+		"USERNAME   TEXT UNIQUE NOT NULL, "
+		"PASSWORD	TEXT NOT NULL);";
 
 
 	try
@@ -131,7 +139,7 @@ bool Database::checkLogin(std::string& username, std::string& Password)
 	std::string sql = "SELECT PASSWORD FROM Users WHERE USERNAME= '" + username + "';";
 	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
 
-	if (exit != SQLITE_OK)
+	if (exit != SQLITE_OK|| sqlite3_step(stmt) != SQLITE_ROW)
 	{
 		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
 		return false;
