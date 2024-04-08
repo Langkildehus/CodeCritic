@@ -1,18 +1,26 @@
+--Title--
 Opgave 1
-Walid har meget dårlig hukkommelse. Han vil gerne vide, hvor mange pænge han tjente på den lønseddel, han tjente flest penge på.
-Givet en liste med længden, n, antallet af lønsedler, hvor hvert element er antal kr. tjent på den lønseddel, skal du fortælle Walid, hvor mange penge han tjente på den lønseddel, hvor han tjente mest.
-
-Input:
+--Title--
+--Description--
+Walid har meget dårlig hukommelse. Han vil gerne vide, hvor mange penge han tjente på den lønseddel, som han tjente flest penge på.
+Givet en liste af længden, n, antallet af lønsedler, hvor hvert element er antal kr. tjent på den lønseddel, skal du fortælle Walid, hvor mange penge han tjente på sin største lønseddel.
+--Description--
+--Input--
 Linje 1: Tallet n
 Linje 2: n mellemrums separeret tal, m
-
-Output:
+--Input--
+--Output--
 Walids højeste løn
-
-Eksempel:
-Input:
+--Output--
+--ExampleInput--
 5
 2 10 50 40 69
-
-Output:
+--ExampleInput--
+--ExampleOutput--
 69
+--ExampleOutput--
+--Constraints--
+1 &#8804; n &#8804; 1000
+
+Time: 1 second
+--Constraints--
