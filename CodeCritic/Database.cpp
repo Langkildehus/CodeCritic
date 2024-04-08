@@ -105,7 +105,7 @@ int Database::insertData()
 	return 0;
 }
 
-int Database::insertUserData(std::string username, std::string password)
+bool Database::signup(std::string& username, std::string& password)
 {
 	char* messageError;
 
@@ -117,11 +117,12 @@ int Database::insertUserData(std::string username, std::string password)
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertUserData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
+		return false;
 	}
 	else
 		std::cout << "Records inserted Successfully!" << "\n";
 
-	return 0;
+	return true;
 }
 
 bool Database::checkLogin(std::string& username, std::string& Password)
