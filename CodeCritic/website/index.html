@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="UTF-8">
         <link rel="stylesheet" href="eksamenstyle.css">
         <script src="script.js"></script>
     </head>
@@ -22,6 +23,7 @@
                     <button id="login" onclick="login()">Login</button>
                     <br/><br/>
                     <button onclick="modal(2);modalClose(1)">Sign Up</button>
+                    <p id="error"></p>
                 </div>
             </div>
         </div>
@@ -39,7 +41,8 @@
                     <input type="password" id="pwd1">
                     <br/>
                     <br/>
-                    <button id="login" onclick="">Login</button>
+                    <button id="login" onclick="signup()">Sign up</button>
+                    <p id="error"></p>
                 </div>
             </div>
         </div>
