@@ -15,9 +15,7 @@ int main()
 	std::string n1 = "hej1";
 	std::string p = "Magnus";
 	std::string n2 = "hej2";
-	db.insertUserData(n1, p);
-	db.insertUserData(n2, p);
-	db.insertUserData(n1, p);
+	
 	db.checkLogin(n1, p);
 
 	//const std::string testFile = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";

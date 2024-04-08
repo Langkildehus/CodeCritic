@@ -20,7 +20,7 @@ Database::Database()
 	int exit = sqlite3_open(R"(Database.db)", &DB);
 	std::string sql = "PRAGMA foreign_keys = ON;";
 	sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
-	std::string sql = "CREATE TABLE IF NOT EXISTS Users("
+	sql = "CREATE TABLE IF NOT EXISTS Users("
 		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"USERNAME   TEXT UNIQUE NOT NULL, "
 		"PASSWORD	TEXT NOT NULL);";
@@ -144,7 +144,6 @@ bool Database::checkLogin(std::string& username, std::string& Password)
 		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
 		return false;
 	}
-	sqlite3_step(stmt);
 	if (Password == std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))))
 	{
 		std::cout << "win\n";

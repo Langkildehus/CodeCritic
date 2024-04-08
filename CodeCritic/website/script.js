@@ -76,11 +76,11 @@ function chooseAssignment(i) {
 }
 
 function signup() {
-    var username = document.getElementById("user").value;
-    var password = document.getElementById("pwd").value;
+    var username = document.getElementById("user1").value;
+    var password = document.getElementById("pwd1").value;
 
-    document.getElementById("user").value = "";
-    document.getElementById("pwd").value = "";
+    document.getElementById("user1").value = "";
+    document.getElementById("pwd1").value = "";
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "http://127.0.0.1/signup");
@@ -89,11 +89,13 @@ function signup() {
         user: username,
         pwd: password,
     });
+
+    console.log(body);
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 201) {
           if (JSON.parse(xhr.responseText).status == "Accepted") {
-            setCookie("username", username, 1)
-            modalClose(1);
+            setCookie("username", username, 1);
+            modalClose(2);
           } else {
             console.log("No");
             document.getElementById("error").innerHTML = "Login failed";
@@ -135,7 +137,6 @@ function checkCookie() {
     if (user != "") {
         document.getElementById("log").innerHTML = "Logout";
         document.getElementById("log").onclick = logout;
-        console.log("ccf");
     } else {
         document.getElementById("log").innerHTML = "Login";
         document.getElementById("log").setAttribute("onclick", "modal(1)");
