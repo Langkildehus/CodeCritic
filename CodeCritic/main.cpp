@@ -9,12 +9,10 @@ Database db; //create a instance of Database
 
 int main()
 {
-
-	//const std::string testFile = "C:\\dev\\CodeCritic\\x64\\Debug\\Testscript.exe";
-	std::string testFile = "TestScript";
-
-	Tester tester{};
-	tester.RunTest(std::move(testFile));
+	Tester tester = Tester(&db);
+	//const std::string testFile = "Opgave1";
+	//const std::string userName = "SJJ";
+	//tester.RunTest(testFile, userName);
 
 	// Start listening on webserver
 	Socket server = Socket("127.0.0.1", 80);

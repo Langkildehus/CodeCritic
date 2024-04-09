@@ -21,5 +21,8 @@
     <ClCompile Include="interactive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\CodeCritic\website\opgaver\Opgave1\SJJ.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\CodeCritic\website\opgaver\Opgave1\SJJ.cpp" />
     <ClCompile Include="interactive.cpp" />
     <ClCompile Include="stdio.cpp" />
   </ItemGroup>

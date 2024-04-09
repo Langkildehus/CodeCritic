@@ -1,6 +1,7 @@
 #pragma once
 
 typedef unsigned int uint;
+typedef unsigned long long ull;
 
 #include <iostream>
 #include <string>
@@ -12,6 +13,7 @@ typedef unsigned int uint;
 #include <cstdio>
 #include <stdlib.h>
 #include <filesystem>
+#include <chrono>
 
 // Windows includes
 #include <WinSock2.h>

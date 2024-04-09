@@ -1,10 +1,19 @@
 #include "pch.h"
 
 #include "tester.h"
+#include "database.h"
 
 #define BUFFSIZE 4096
 
-Tester::Tester()
+static inline ull GetTime()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+}
+
+Tester::Tester(Database* _db)
+    : db(_db)
 {
 	// Start threadpool?
 }
@@ -14,19 +23,19 @@ Tester::~Tester()
 	// Stop threadpool?
 }
 
-void Tester::RunTest(const std::string name) const
+void Tester::RunTest(const std::string& task, const std::string& name) const
 {
 	// Spawn thread to run tests on
 	// Allows HTTP server to keep running while the test is running
-	std::thread t1(&Tester::StartTest, this, name);
+	std::thread t1(&Tester::StartTest, this, task, name);
 	t1.detach();
 }
 
 // ---------- PRIVATE ----------
 
-void Tester::StartTest(const std::string name) const
+void Tester::StartTest(const std::string task, const std::string name) const
 {
-	const std::string path = "C:\\dev\\CodeCritic\\Opgaver\\" + name + "\\";
+	const std::string path = "C:\\dev\\CodeCritic\\CodeCritic\\website\\opgaver\\" + task + "\\";
     const std::string sJudgePath = path + "judge.exe";
 
 	// Compile submission
@@ -41,14 +50,20 @@ void Tester::StartTest(const std::string name) const
     // Read config
     //
     //
+    const ull timeLimit = 1000;
+    const std::string testData[3] = {
+        "1 2", "2 5 4", "10 1 2 3 4 5 6 7 8 9 69"
+    };
+    //
     //
 
 	// Run test cases
     int points = 0;
-    for (uint c = 0; c < 10; c++)
+    for (uint c = 0; c < 3; c++)
     {
-    	points += Test(judgePath, testPath, 1);
+    	points += Test(judgePath, testPath, testData[c], timeLimit);
     }
+    std::cout << "Score: " << points << "\n";
 
 	// Save test result in DB
 	SaveScore(points);
@@ -80,17 +95,22 @@ void Tester::Delete(const std::string& deletePath) const
 	std::remove(deletePath.c_str());
 }
 
-int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const int timeLimit) const
+int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::string& testData, const ull timeLimit) const
 {
     // https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
     // Prepare test
-    //std::vector<std::string> inputs;
-    //std::vector<std::string> outputs;
-    // int (*Test)(std::vector<std::string>&inputs,
-    // std::vector<std::string>&outputs)
+    int points = 0;
+    std::vector<std::string> inputs;
+    std::vector<std::string> outputs;
     
-    // Create pipes for std I/O
+    // Create pipes for std I/O for judge
+    HANDLE judgeStdInRead = NULL;
+    HANDLE judgeStdInWrite = NULL;
+    HANDLE judgeStdOutRead = NULL;
+    HANDLE judgeStdOutWrite = NULL;
+
+    // Create pipes for std I/O for submission
     HANDLE childStdInRead = NULL;
     HANDLE childStdInWrite = NULL;
     HANDLE childStdOutRead = NULL;
@@ -100,6 +120,29 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const int ti
     security.nLength = sizeof(SECURITY_ATTRIBUTES);
     security.bInheritHandle = TRUE;
     security.lpSecurityDescriptor = NULL;
+
+    // Create pipe for the judge stdout
+    if (!CreatePipe(&judgeStdOutRead, &judgeStdOutWrite, &security, 0))
+    {
+        return -1;
+    }
+    // read handle to stdout should not be inherited
+    if (!SetHandleInformation(judgeStdOutRead, HANDLE_FLAG_INHERIT, 0))
+    {
+        return -2;
+    }
+
+    // Create pipe for the judge stdin
+    if (!CreatePipe(&judgeStdInRead, &judgeStdInWrite, &security, 0))
+    {
+        return -3;
+    }
+    // read handle to stdin should not be inherited
+    if (!SetHandleInformation(judgeStdInWrite, HANDLE_FLAG_INHERIT, 0))
+    {
+        return -4;
+    }
+
 
     // Create pipe for the child stdout
     if (!CreatePipe(&childStdOutRead, &childStdOutWrite, &security, 0))
@@ -122,8 +165,48 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const int ti
     {
         return -4;
     }
+    
 
-    // Specify stdin and stdout handles
+
+
+    // Specify stdin and stdout handles for judge
+    STARTUPINFO startInfoJudge;
+    ZeroMemory(&startInfoJudge, sizeof(STARTUPINFO));
+    startInfoJudge.cb = sizeof(STARTUPINFO);
+    startInfoJudge.hStdError = judgeStdOutWrite;
+    startInfoJudge.hStdOutput = judgeStdOutWrite;
+    startInfoJudge.hStdInput = judgeStdInRead;
+    startInfoJudge.dwFlags |= STARTF_USESTDHANDLES;
+
+    PROCESS_INFORMATION processInfoJudge;
+    ZeroMemory(&processInfoJudge, sizeof(PROCESS_INFORMATION));
+
+    // Start the judge
+    const BOOL judgeSuccess = CreateProcess(
+        judgePath,      // Path to binary
+        NULL,           // Command line
+        NULL,           // Process handle not inheritable
+        NULL,           // Thread handle not inheritable
+        TRUE,           // Set handle inheritance
+        0,              // No creation flags
+        NULL,           // Use parent's environment block
+        NULL,           // Use parent's starting directory 
+        &startInfoJudge,     // Pointer to STARTUPINFO
+        &processInfoJudge    // Pointer to PROCESS_INFORMATION
+    );
+    if (!judgeSuccess)
+    {
+        std::cout << "CreateProcess failed for judge: " << GetLastError() << "\n";
+        return -5;
+    }
+    
+    WriteToPipe(judgeStdInWrite, testData);
+    while (outputs.size() < 1 || outputs[outputs.size() - 1].find('\r') == std::string::npos)
+    {
+        ReadFromPipe(judgeStdOutRead, outputs, true);
+    }
+
+    // Specify stdin and stdout handles for submission
     STARTUPINFO startInfo;
     ZeroMemory(&startInfo, sizeof(STARTUPINFO));
     startInfo.cb = sizeof(STARTUPINFO);
@@ -134,12 +217,12 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const int ti
 
     PROCESS_INFORMATION processInfo;
     ZeroMemory(&processInfo, sizeof(PROCESS_INFORMATION));
-
+    
     //// Start the script as a child process
     //// Microsoft documentation:
     //// https://learn.microsoft.com/en-us/windows/win32/procthread/creating-processes
     const BOOL success = CreateProcess(
-        testPath,           // Path to binary
+        testPath,       // Path to binary
         NULL,           // Command line
         NULL,           // Process handle not inheritable
         NULL,           // Thread handle not inheritable
@@ -150,96 +233,144 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const int ti
         &startInfo,     // Pointer to STARTUPINFO
         &processInfo    // Pointer to PROCESS_INFORMATION
     );
-
     if (!success)
     {
-        return -5;
+        std::cout << "CreateProcess failed for submission: " << GetLastError() << "\n";
+        return -6;
     }
 
     // Close no longer needed handles
+    CloseHandle(judgeStdOutWrite);
+    CloseHandle(judgeStdInRead);
     CloseHandle(childStdOutWrite);
     CloseHandle(childStdInRead);
 
-    //int outputCode = Test(inputs, outputs);
+    // Start timer
+    const ull start = GetTime();
+    ull now = start;
 
+    // Start test by starting to write input
+    WriteToPipe(childStdInWrite, testData);
 
+    while (now - start <= timeLimit)
+    {
+        if (ReadFromPipe(childStdOutRead, inputs))
+        {
+            WriteToPipe(judgeStdInWrite, inputs[inputs.size() - 1]);
+            std::cout << "child stdout: '" << inputs[inputs.size() - 1] << "'\n";
+        }
+        if (ReadFromPipe(judgeStdOutRead, outputs))
+        {
+            const std::string& output = outputs[outputs.size() - 1];
+            const size_t pos = output.find('\r');
+            if (pos != std::string::npos)
+            {
+                std::cout << "judge answer: '" << output.substr(pos + 1) << "'\n";
+                points = std::stoi(output.substr(pos + 1));
+                break;
+            }
+            else
+            {
+                WriteToPipe(childStdInWrite, output);
+                std::cout << "judge interaction: '" << output << "'\n";
+            }
+        }
 
+        now = GetTime();
+    }
+    if (now - start > timeLimit)
+    {
+        std::cout << "TIMELIMIT EXCEEDED!\n";
+        points = 0;
+    }
 
-
-
-    //for (unsigned int c = 0; outputCode == -1; c++)
-    //{
-    //    // Write to scripts stdin
-    //    if (!WriteToPipe(outputs[c], inWrite))
-    //    {
-    //        //res.status = -6;
-    //        //return res;
-    //        return -6;
-    //    }
-
-    //    // Reads stdout from script into the end of inputs vector
-    //    ReadFromPipe(outRead, inputs);
-
-    //    outputCode = Test(inputs, outputs);
-    //}
-    ////res.result = outputCode;
-
-    //// Wait until child process exits.
-    //WaitForSingleObject(processInfo.hProcess, timeLimit);
-
-    //// Close all other handles
-    CloseHandle(processInfo.hProcess);
-    CloseHandle(processInfo.hThread);
+    
+    // Close all other handles
+    CloseHandle(judgeStdInWrite);
+    CloseHandle(judgeStdOutRead);
     CloseHandle(childStdInWrite);
     CloseHandle(childStdOutRead);
 
+    // Wait until child processes exit.
+    WaitForSingleObject(processInfoJudge.hProcess, 1000);
+    WaitForSingleObject(processInfo.hProcess, 1000);
+
+    // Close the process handles
+    CloseHandle(processInfoJudge.hProcess);
+    CloseHandle(processInfoJudge.hThread);
+    CloseHandle(processInfo.hProcess);
+    CloseHandle(processInfo.hThread);
+
 	// Return result of test
-	return 0;
+	return points;
 }
 
-bool Tester::WriteToPipe(const std::string& msg, const HANDLE& pipeHandle)
+void Tester::WriteToPipe(const HANDLE& pipeHandle, const std::string& msg) const
 {
 	// Allocate memory for msg size + 1 (the +1 is for a break character at the end '\n')
-	const size_t size = (1 + msg.size()) * sizeof(CHAR);
-
-	CHAR* inputBuf = (CHAR*)malloc(size);
+	const size_t size = 1 + msg.size();
+    CHAR* inputBuf = new CHAR[size];
 	if (inputBuf == nullptr)
 	{
-		return false;
+		return;
 	}
 
-	for (unsigned int i = 0; i < size - 1; i++)
+    // Transfer the entire msg into the char* buffer
+	for (uint c = 0; c < size - 1; c++)
 	{
-		inputBuf[i] = msg[i];
+		inputBuf[c] = msg[c];
 	}
-	inputBuf[msg.size()] = '\n';
+	inputBuf[size - 1] = '\n';
 
+    // Write to the handle with from buffer
 	DWORD dwWrite;
 	WriteFile(pipeHandle, inputBuf, size, &dwWrite, NULL);
 
 	// Cleanup
-	free(inputBuf);
-	return true;
+	delete[] inputBuf;
 }
 
-void Tester::ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& vec)
+bool Tester::ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& vec, const bool waitForData) const
 {
+    DWORD available;
+    if (!waitForData)
+    {
+        // Check if there is anything to be read
+        const BOOL success = PeekNamedPipe(pipeHandle, NULL, 0, NULL, &available, NULL);
+        if (!(success && available > 0))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        // Set available amount of bytes to 1 when waitForData is true
+        // This will cause this function to wait until at least one byte has been read
+        available = 1;
+    }
+
+    // Create space in vector for new input data
+    const size_t c = vec.size();
+    vec.emplace_back("");
+
+    // Create buffer for reading all the available bytes one chunk at a time (up to BUFFSIZE at a time)
 	DWORD dwRead;
-	std::string output = "";
-
 	CHAR outputBuf[BUFFSIZE];
-	while (ReadFile(pipeHandle, outputBuf, BUFFSIZE - 1, &dwRead, NULL))
+	while (available > 0)
 	{
+        // Read into buffer, if reading fails, return false
+        const BOOL read = ReadFile(pipeHandle, outputBuf, BUFFSIZE - 1, &dwRead, NULL);
+        if (!read)
+        {
+            return false;
+        }
+        
+        // Update amount of available bytes
+        available -= BUFFSIZE - 1 > available ? available : BUFFSIZE - 1;
+
+        // Save buffer
 		outputBuf[dwRead] = 0;
-		output += outputBuf;
-
-		// Check for break
-		if (output[output.size() - 1] == '\n')
-		{
-			output.erase(output.begin() + output.size() - 2, output.end());
-			break;
-		}
+		vec[c] += outputBuf;
 	}
-
-	vec.push_back(output);
+    return true;
 }
