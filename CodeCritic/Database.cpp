@@ -24,8 +24,9 @@ Database::Database()
 		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"USERNAME   TEXT UNIQUE NOT NULL, "
 		"PASSWORD	TEXT NOT NULL);";
-		/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
-		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
+
+	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
 }
 
 Database::~Database()
