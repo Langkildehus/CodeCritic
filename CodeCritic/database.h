@@ -11,7 +11,7 @@ public:
 	int createTable(std::string& tname);
 	int deleteData(std::string& tName);
 	int insertData();
-	bool signup(std::string& username, std::string& password);
+	bool signup(const std::string& username, const std::string& password);
 	int selectData(std::string& tName);
 	int updateData(std::string& tName);
 	bool checkLogin(std::string& username, std::string& Password);

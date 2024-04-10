@@ -83,7 +83,7 @@ int Database::insertData()
 	return 0;
 }
 
-bool Database::signup(std::string& username, std::string& password)
+bool Database::signup(const std::string& username, const std::string& password)
 {
 	char* messageError;
 
