@@ -2,6 +2,8 @@
 
 #include "database.h"
 
+#include "tester.h"
+
 #define READSIZE 1024
 
 extern Database db;
@@ -166,13 +168,9 @@ void HandleGET(const SOCKET connection, const std::string& url)
 		{
 			// Replace dynamic parts of dynamic file
 			ReplaceInLine(line, description);
-			line += "<br>";
 		}
-		else
-		{
-			// Manually add newline character at the end of every new line since they are not read from the file
-			line += "\n";
-		}
+		// Manually add newline character at the end of every new line since they are not read from the file
+		line += "\n";
 
 
 		// Send requested as part of the body
@@ -198,14 +196,14 @@ void ParseLoginJson(const std::string& msg, std::string& username, std::string& 
 	password = msg.substr(passwordIndexStart + 1, passwordIndexEnd - passwordIndexStart - 1);
 }
 
-void HandlePOST(const SOCKET connection, const std::string& msg, const std::string& url)
+void HandlePOST(const SOCKET connection, const std::string& msg, const std::string& url, std::string& cookieUsername, const Tester& tester)
 {
-	// Parse username and password from json
-	std::string username, password;
-	ParseLoginJson(msg, username, password);
-
 	if (url == "/login")
 	{
+		// Parse username and password from json
+		std::string username, password;
+		ParseLoginJson(msg, username, password);
+
 		// Send header for response
 		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
@@ -222,6 +220,10 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 	}
 	else if (url == "/signup")
 	{
+		// Parse username and password from json
+		std::string username, password;
+		ParseLoginJson(msg, username, password);
+
 		// Send header for response
 		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
@@ -236,15 +238,78 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 			send(connection, "{\"status\": \"Rejected\"}", 22, 0);
 		}
 	}
+	else if (url == "/submit")
+	{
+		// Find indexes in JSON for start and end of username
+		const size_t codeIndex = msg.find("\"code\"");
+		const size_t codeIndexStart = msg.find('"', codeIndex + 6);
+		size_t codeIndexEnd = msg.find('"', codeIndexStart + 1);;
+		while (msg[codeIndexEnd - 1] == '\\')
+		{
+			codeIndexEnd = msg.find('"', codeIndexEnd + 1);
+		}
+		std::string sourceCode = msg.substr(codeIndexStart + 1, codeIndexEnd - codeIndexStart - 1);
+
+		// Send header for response
+		const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
+		send(connection, response.c_str(), response.size(), 0);
+
+		std::string assignment = "Opgave1";
+		std::ofstream sourceFile("website/opgaver/" + assignment + '/' + cookieUsername + ".cpp");
+
+		bool start = false;
+		for (int c = 0; c < sourceCode.size(); c++)
+		{
+			if (sourceCode[c] != '\\' && !start)
+			{
+				continue;
+			}
+
+			if (!start)
+			{
+				start = true;
+				continue;
+			}
+
+			switch (sourceCode[c])
+			{
+			case '\\':
+				sourceCode.erase(c, 1);
+				break;
+			case 'n':
+				sourceCode[c - 1] = '\n';
+				sourceCode.erase(c, 1);
+				break;
+			case 'r':
+				sourceCode[c - 1] = '\r';
+				sourceCode.erase(c, 1);
+				break;
+			case 't':
+				sourceCode[c - 1] = '\t';
+				sourceCode.erase(c, 1);
+				break;
+			default:
+				std::cout << "Escaped character not found: " << sourceCode[c] << "\n";
+				sourceCode.erase(c - 1, 1);
+				break;
+			}
+			c--;
+			start = false;
+		}
+
+		sourceFile << sourceCode;
+		sourceFile.close();
+		tester.RunTest(assignment, cookieUsername);
+	}
 	else
 	{
 		std::cout << "POST request could not be handled!\n";
-		const std::string response = "HTTP/1.1 400 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
+		const std::string response = "HTTP/1.1 404 Not Found\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
 	}
 }
 
-void HandleRequest(const SOCKET connection)
+void HandleRequest(const SOCKET connection, const Tester& tester)
 {
 	// The HTTP header needs to be read first, before we know the length of the body - if there is a body
 	// Create buffer for reading from the socket & a string to save header in
@@ -305,9 +370,8 @@ void HandleRequest(const SOCKET connection)
 		if (cookieIndex != std::string::npos)
 		{
 			const std::string cookie = segment.substr(cookieIndex + 7);
-			std::cout << cookie << "\n";
 			const size_t usernameIndex = cookie.find("username=") + 9;
-			username = cookie.substr(usernameIndex);
+			username = cookie.substr(usernameIndex, cookie.size() - usernameIndex - 1);
 		}
 	}
 
@@ -378,7 +442,7 @@ void HandleRequest(const SOCKET connection)
 			}
 		}
 
-		HandlePOST(connection, body, url);
+		HandlePOST(connection, body, url, username, tester);
 	}
 
 	// Ignore everything else

@@ -51,7 +51,8 @@ void Tester::StartTest(const std::string task, const std::string name) const
     //
     //
     const ull timeLimit = 1000;
-    const std::string testData[3] = {
+    const int testCount = 3;
+    const std::string testData[testCount] = {
         "1 2", "2 5 4", "10 1 2 3 4 5 6 7 8 9 69"
     };
     //
@@ -59,11 +60,28 @@ void Tester::StartTest(const std::string task, const std::string name) const
 
 	// Run test cases
     int points = 0;
-    for (uint c = 0; c < 3; c++)
+    for (uint c = 0; c < testCount; c++)
     {
-    	points += Test(judgePath, testPath, testData[c], timeLimit);
+        int point = Test(judgePath, testPath, testData[c], timeLimit);
+        if (point > 0)
+        {
+            points += point;
+        }
+        else if (point == 0)
+        {
+            // Wrong answer
+        }
+        else if (point == -1337)
+        {
+            // Timelimit exceeded
+        }
+        else
+        {
+            // Error
+            std::cout << "Error during testing\n";
+        }
     }
-    std::cout << "Score: " << points << "\n";
+    std::cout << "Score: " << points << '/' << testCount << "\n";
 
 	// Save test result in DB
 	SaveScore(points);
@@ -281,7 +299,7 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
     if (now - start > timeLimit)
     {
         std::cout << "TIMELIMIT EXCEEDED!\n";
-        points = 0;
+        points = -1337;
     }
 
     

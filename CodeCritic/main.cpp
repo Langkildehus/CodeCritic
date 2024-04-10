@@ -4,7 +4,7 @@
 #include "socket.h"
 #include "database.h"
 
-void HandleRequest(const SOCKET connection);
+void HandleRequest(const SOCKET connection, const Tester& tester);
 Database db; //create a instance of Database
 
 int main()
@@ -29,7 +29,7 @@ int main()
 		}
 
 		// Create thread for connection and detatch it
-		std::thread handleThread(HandleRequest, connection);
+		std::thread handleThread(HandleRequest, connection, tester);
 		handleThread.detach();
 	}
 }
