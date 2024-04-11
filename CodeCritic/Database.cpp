@@ -20,6 +20,7 @@ Database::Database()
 	int exit = sqlite3_open(R"(Database.db)", &DB);
 	std::string sql = "PRAGMA foreign_keys = ON;";
 	sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
+	sqlite3_db_config(DB, SQLITE_DBCONFIG_ENABLE_FKEY, 1, NULL);
 	sql = "CREATE TABLE IF NOT EXISTS Users("
 		"ID			INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"USERNAME   TEXT UNIQUE NOT NULL, "
@@ -32,15 +33,15 @@ Database::~Database()
 	sqlite3_close(DB);
 }
 
-int Database::createTable(std::string& tname)
+int Database::createTable(const std::string& tName)
 {
 	char* messageError;
-
-	std::string sql = "CREATE TABLE IF NOT EXISTS " + tname + "("
-		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+	std::string sql;
+	sql = "CREATE TABLE IF NOT EXISTS " + tName + "("
+		"ID			INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"UserID     INTEGER UNIQUE NOT NULL, "
-		"Points		INTEGER NOT NULL)"
-		"FOREIGN KEY(UserID) REFERENCES Users(ID);";
+		"Points		INTEGER NOT NULL,"
+		"FOREIGN_KEY UserID  REFERENCES Users(ID));";
 
 
 	try
@@ -62,23 +63,42 @@ int Database::createTable(std::string& tname)
 	return 0;
 }
 
-int Database::insertData()
+int Database::insertData(const std::string& tName, const int Points, const std::string& username)
 {
 	char* messageError;
+	int ID;
+	sqlite3_stmt* stmt;
+	std::string sql = "SELECT ID FROM Users WHERE USERNAME= '" + username + "';";
+	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
 
-	std::string sql("INSERT INTO Users (NAME, PASSWORD) VALUES('h','z')");
-
-
-	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
-	int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
+	{
+		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
+		return 0;
+	}
+	ID = sqlite3_column_int(stmt, 0);
+	sql = "INSERT INTO " + tName + " (UserID, Points) VALUES('" + std::to_string(ID) + "', '" + std::to_string(Points) + "')";
+	
+	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
+		
+		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "' WHERE UserID = '" + std::to_string(ID) + "'");
+
+		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+		if (exit != SQLITE_OK) 
+		{
+			std::cerr << "Error in updateData function." << "\n" << messageError << "\n";
+			sqlite3_free(messageError);
+		}
+		else
+			std::cout << "Records updated Successfully!" << "\n";
+		return 0;
 	}
 	else
 		std::cout << "Records inserted Successfully!" << "\n";
-
-	return 0;
+		return 0;
 }
 
 bool Database::signup(const std::string& username, const std::string& password)
@@ -88,7 +108,7 @@ bool Database::signup(const std::string& username, const std::string& password)
 	std::string sql("INSERT INTO Users (USERNAME, PASSWORD) VALUES('"+ username + "','" + password +"');");
 
 
-	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
+	 //An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here 
 	int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertUserData function." << "\n" << messageError << "\n";
@@ -99,6 +119,7 @@ bool Database::signup(const std::string& username, const std::string& password)
 		std::cout << "Records inserted Successfully!" << "\n";
 
 	return true;
+	
 }
 
 bool Database::checkLogin(std::string& username, std::string& Password)
@@ -121,33 +142,6 @@ bool Database::checkLogin(std::string& username, std::string& Password)
 	return false;
 }
 
-int Database::updateData(std::string& tName, std::string& Points, std::string& username)
-{
-	char* messageError;
-	int ID;
-	sqlite3_stmt* stmt;
-	std::string sql = "SELECT ID FROM Users WHERE USERNAME= '" + username + "';";
-	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
-
-	if (exit != SQLITE_OK|| sqlite3_step(stmt) != SQLITE_ROW)
-	{
-		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
-		return 0;
-	}
-	ID = sqlite3_column_int(stmt, 0);
-	std::string sql("UPDATE " + tName + " SET Points = '" + Points + "' WHERE UserID = '" + std::to_string(ID) + "'");
-
-	int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
-	if (exit != SQLITE_OK) {
-		std::cerr << "Error in updateData function." << "\n" << messageError << "\n";
-		sqlite3_free(messageError);
-	}
-	else
-		std::cout << "Records updated Successfully!" << "\n";
-
-	return 0;
-}
-
 int Database::deleteData(std::string& tName)
 {
 	char* messageError;
@@ -166,7 +160,7 @@ int Database::deleteData(std::string& tName)
 	return 0;
 }
 
-int Database::selectData(std::string& tName)
+int Database::selectData(const std::string& tName)
 {
 	char* messageError;
 
