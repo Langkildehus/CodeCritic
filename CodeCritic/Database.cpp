@@ -21,11 +21,9 @@ Database::Database()
 	std::string sql = "PRAGMA foreign_keys = ON;";
 	sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
 	sql = "CREATE TABLE IF NOT EXISTS Users("
-		"ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+		"ID			INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"USERNAME   TEXT UNIQUE NOT NULL, "
 		"PASSWORD	TEXT NOT NULL);";
-
-	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
 }
 
@@ -123,13 +121,22 @@ bool Database::checkLogin(std::string& username, std::string& Password)
 	return false;
 }
 
-int Database::updateData(std::string& tName)
+int Database::updateData(std::string& tName, std::string& Points, std::string& username)
 {
 	char* messageError;
+	int ID;
+	sqlite3_stmt* stmt;
+	std::string sql = "SELECT ID FROM Users WHERE USERNAME= '" + username + "';";
+	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
 
-	std::string sql("UPDATE GRADES SET GRADE = 'A' WHERE LNAME = 'Cooper'");
+	if (exit != SQLITE_OK|| sqlite3_step(stmt) != SQLITE_ROW)
+	{
+		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
+		return 0;
+	}
+	ID = sqlite3_column_int(stmt, 0);
+	std::string sql("UPDATE " + tName + " SET Points = '" + Points + "' WHERE UserID = '" + std::to_string(ID) + "'");
 
-	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
 	int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in updateData function." << "\n" << messageError << "\n";

@@ -13,7 +13,7 @@ public:
 	int insertData();
 	bool signup(const std::string& username, const std::string& password);
 	int selectData(std::string& tName);
-	int updateData(std::string& tName);
+	int updateData(std::string& tName, std::string& Points, std::string& username);
 	bool checkLogin(std::string& username, std::string& Password);
 	
 private:
