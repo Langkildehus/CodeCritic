@@ -18,10 +18,7 @@ static int callback(void* NotUsed, int argc, char** argv, char** azColName)
 Database::Database()
 {
 	int exit = sqlite3_open(R"(Database.db)", &DB);
-	std::string sql = "PRAGMA foreign_keys = ON;";
-	sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
-	sqlite3_db_config(DB, SQLITE_DBCONFIG_ENABLE_FKEY, 1, NULL);
-	sql = "CREATE TABLE IF NOT EXISTS Users("
+	std::string sql = "CREATE TABLE IF NOT EXISTS Users("
 		"ID			INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"USERNAME   TEXT UNIQUE NOT NULL, "
 		"PASSWORD	TEXT NOT NULL);";
@@ -40,8 +37,7 @@ int Database::createTable(const std::string& tName)
 	sql = "CREATE TABLE IF NOT EXISTS " + tName + "("
 		"ID			INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"UserID     INTEGER UNIQUE NOT NULL, "
-		"Points		INTEGER NOT NULL,"
-		"FOREIGN_KEY UserID  REFERENCES Users(ID));";
+		"Points		INTEGER NOT NULL);";
 
 
 	try
@@ -140,24 +136,6 @@ bool Database::checkLogin(std::string& username, std::string& Password)
 	}
 	std::cout << "fail\n";
 	return false;
-}
-
-int Database::deleteData(std::string& tName)
-{
-	char* messageError;
-
-	std::string sql = "DELETE FROM GRADES;";
-
-	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here */
-	int exit = sqlite3_exec(DB, sql.c_str(), callback, NULL, &messageError);
-	if (exit != SQLITE_OK) {
-		std::cerr << "Error in deleteData function." << "\n" << messageError << "\n";
-		sqlite3_free(messageError);
-	}
-	else
-		std::cout << "Records deleted Successfully!" << "\n";
-
-	return 0;
 }
 
 int Database::selectData(const std::string& tName)
