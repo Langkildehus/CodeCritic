@@ -240,6 +240,14 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 	}
 	else if (url == "/submit")
 	{
+		if (!cookieUsername.size())
+		{
+			std::cout << "Ignoring submission! User not logged in.\n";
+			const std::string response = "HTTP/1.1 418 I'm a teapot\r\n\r\n";
+			send(connection, response.c_str(), response.size(), 0);
+			return;
+		}
+
 		// Find indexes in JSON for start and end of username
 		const size_t codeIndex = msg.find("\"code\"");
 		const size_t codeIndexStart = msg.find('"', codeIndex + 6);

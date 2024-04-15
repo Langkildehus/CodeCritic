@@ -14,12 +14,12 @@ public:
 
 private:
     void StartTest(const std::string task, const std::string name) const;
-    std::string Compile(const std::string& path) const;
-    void SaveScore(const int score) const;
-    void Delete(const std::string& compiledPath) const;
+    inline std::string Compile(const std::string& path) const;
+    inline void SaveScore(const std::string& task, const int score, const std::string& name) const;
+    inline void Delete(const std::string& compiledPath) const;
 
     // The test itself
-    int Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::string& testData, const ull timeLimit) const;
+    int Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::string& testData, const int timeLimit) const;
     void WriteToPipe(const HANDLE& pipeHandle, const std::string& msg) const;
     bool ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& vec, const bool waitForData = false) const;
 

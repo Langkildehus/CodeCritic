@@ -7,17 +7,33 @@
 void HandleRequest(const SOCKET connection, const Tester& tester);
 Database db; //create a instance of Database
 
+void CreateTaskTables()
+{
+	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator("website/opgaver"))
+	{
+		// Only look for directories
+		if (!entry.is_directory())
+			continue;
+
+		// Find directory name
+		const std::string dir = entry.path().string();
+		const size_t folderIndex = dir.find_last_of("\\");
+
+		// Make sure there is a table for every task
+		db.createTable(dir.substr(folderIndex + 1));
+	}
+}
+
 int main()
 {
-	// Test users
+	// Default DB setup
+	CreateTaskTables();
 	db.signup("SJJ", "1234");
 	db.signup("SYJ", "1234");
 	db.signup("ML", "1234");
 
+	// Instantiate Tester
 	Tester tester = Tester(&db);
-	//const std::string testFile = "Opgave1";
-	//const std::string userName = "SJJ";
-	//tester.RunTest(testFile, userName);
 
 	// Start listening on webserver
 	Socket server = Socket("127.0.0.1", 80);

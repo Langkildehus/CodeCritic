@@ -47,22 +47,37 @@ void Tester::StartTest(const std::string task, const std::string name) const
     const LPCWSTR testPath = wTestPathName.c_str();
     const LPCWSTR judgePath = wJudgePathName.c_str();
 
+    // Read test cases
+    std::vector<std::string> testCases;
+    std::string line;
+    std::ifstream testFile(path + "testcases.txt");
+    while (std::getline(testFile, line))
+    {
+        testCases.push_back(line);
+    }
+    testFile.close();
+
     // Read config
-    //
-    //
-    const ull timeLimit = 1000;
-    const int testCount = 3;
-    const std::string testData[testCount] = {
-        "1 2", "2 5 4", "10 1 2 3 4 5 6 7 8 9 69"
-    };
-    //
-    //
+    int timeLimit = 1000;
+    std::ifstream configFile(path + "config.txt");
+    int lineNumber = 0;
+    while (std::getline(testFile, line))
+    {
+        switch (lineNumber)
+        {
+        case 0:
+            timeLimit = std::stoi(line);
+            break;
+        }
+        lineNumber++;
+    }
+    configFile.close();
 
 	// Run test cases
     int points = 0;
-    for (uint c = 0; c < testCount; c++)
+    for (uint c = 0; c < testCases.size(); c++)
     {
-        int point = Test(judgePath, testPath, testData[c], timeLimit);
+        int point = Test(judgePath, testPath, testCases[c], timeLimit);
         if (point > 0)
         {
             points += point;
@@ -70,27 +85,29 @@ void Tester::StartTest(const std::string task, const std::string name) const
         else if (point == 0)
         {
             // Wrong answer
+            std::cout << "Wrong answer!\n";
         }
         else if (point == -1337)
         {
             // Timelimit exceeded
+            std::cout << "Timelimit exceeded!\n";
         }
         else
         {
             // Error
-            std::cout << "Error during testing\n";
+            std::cout << "Error during testing!\n";
         }
     }
-    std::cout << "Score: " << points << '/' << testCount << "\n";
+    std::cout << "Score: " << points << '/' << testCases.size() << "\n";
 
 	// Save test result in DB
-	SaveScore(points);
+	SaveScore(task, points, name);
 
 	// Remove compiled file after all tests
 	Delete(compilePath);
 }
 
-std::string Tester::Compile(const std::string& path) const
+inline std::string Tester::Compile(const std::string& path) const
 {
 	// change filepath .cpp to .exe for output file
 	const std::string compilePath = path.substr(0, path.size() - 4) + ".exe";
@@ -102,18 +119,21 @@ std::string Tester::Compile(const std::string& path) const
 	return compilePath;
 }
 
-void Tester::SaveScore(const int score) const
+inline void Tester::SaveScore(const std::string& task, const int score, const std::string& name) const
 {
 	// Save score to DB
+    std::cout << "task: '" << task << "'\n";
+    std::cout << "name: '" << name << "'\n";
+    db->insertData(task, score, name);
 }
 
-void Tester::Delete(const std::string& deletePath) const
+inline void Tester::Delete(const std::string& deletePath) const
 {
 	// Delete file
 	std::remove(deletePath.c_str());
 }
 
-int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::string& testData, const ull timeLimit) const
+int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::string& testData, const int timeLimit) const
 {
     // https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
@@ -298,18 +318,20 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
     }
     if (now - start > timeLimit)
     {
-        std::cout << "TIMELIMIT EXCEEDED!\n";
         points = -1337;
     }
 
-    
+    // Start termination process (Process is async, so we need to wait afterwards)
+    TerminateProcess(processInfoJudge.hProcess, 0);
+    TerminateProcess(processInfo.hProcess, 0);
+
     // Close all other handles
     CloseHandle(judgeStdInWrite);
     CloseHandle(judgeStdOutRead);
     CloseHandle(childStdInWrite);
     CloseHandle(childStdOutRead);
 
-    // Wait until child processes exit.
+    // Wait until child processes have been terminated
     WaitForSingleObject(processInfoJudge.hProcess, 1000);
     WaitForSingleObject(processInfo.hProcess, 1000);
 
