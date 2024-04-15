@@ -5,9 +5,9 @@
 #include "database.h"
 
 void HandleRequest(const SOCKET connection, const Tester& tester);
-Database db; //create a instance of Database
+Database db{}; //create a instance of Database
 
-void CreateTaskTables()
+void CreateAssignmentTables()
 {
 	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator("website/opgaver"))
 	{
@@ -20,20 +20,20 @@ void CreateTaskTables()
 		const size_t folderIndex = dir.find_last_of("\\");
 
 		// Make sure there is a table for every task
-		db.createTable(dir.substr(folderIndex + 1));
+		db.createAssignment(dir.substr(folderIndex + 1));
 	}
 }
 
 int main()
 {
 	// Default DB setup
-	CreateTaskTables();
+	CreateAssignmentTables();
 	db.signup("SJJ", "1234");
 	db.signup("SYJ", "1234");
 	db.signup("ML", "1234");
 
 	// Instantiate Tester
-	Tester tester = Tester(&db);
+	Tester tester = Tester();
 
 	// Start listening on webserver
 	Socket server = Socket("127.0.0.1", 80);

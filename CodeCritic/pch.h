@@ -23,3 +23,9 @@ typedef unsigned long long ull;
 // SQlite includes
 #include "stdio.h"
 #include "sqlite3.h"
+
+struct Cookie
+{
+	std::string username = "";
+	std::string assignment = "";
+};

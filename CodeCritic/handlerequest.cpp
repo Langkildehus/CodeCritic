@@ -196,7 +196,8 @@ void ParseLoginJson(const std::string& msg, std::string& username, std::string& 
 	password = msg.substr(passwordIndexStart + 1, passwordIndexEnd - passwordIndexStart - 1);
 }
 
-void HandlePOST(const SOCKET connection, const std::string& msg, const std::string& url, std::string& cookieUsername, const Tester& tester)
+void HandlePOST(const SOCKET connection, const std::string& msg, const std::string& url,
+	const Cookie& cookies, const Tester& tester)
 {
 	if (url == "/login")
 	{
@@ -240,9 +241,9 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 	}
 	else if (url == "/submit")
 	{
-		if (!cookieUsername.size())
+		if (cookies.username.size() == 0 || cookies.assignment.size() == 0)
 		{
-			std::cout << "Ignoring submission! User not logged in.\n";
+			std::cout << "Ignoring submission! Insufficient cookies.\n";
 			const std::string response = "HTTP/1.1 418 I'm a teapot\r\n\r\n";
 			send(connection, response.c_str(), response.size(), 0);
 			return;
@@ -262,8 +263,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
 
-		std::string assignment = "Opgave1";
-		std::ofstream sourceFile("website/opgaver/" + assignment + '/' + cookieUsername + ".cpp");
+		std::ofstream sourceFile("website/opgaver/" + cookies.assignment + '/' + cookies.username + ".cpp");
 
 		bool start = false;
 		for (int c = 0; c < sourceCode.size(); c++)
@@ -307,7 +307,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 
 		sourceFile << sourceCode;
 		sourceFile.close();
-		tester.RunTest(assignment, cookieUsername);
+		tester.RunTest(cookies);
 	}
 	else
 	{
@@ -357,7 +357,7 @@ void HandleRequest(const SOCKET connection, const Tester& tester)
 
 	// Save important information from header
 	int contentLength = 0;
-	std::string username;
+	Cookie cookies;
 
 	// Go through every line in the header
 	while (!std::getline(reqss, segment, '\n').eof())
@@ -378,8 +378,29 @@ void HandleRequest(const SOCKET connection, const Tester& tester)
 		if (cookieIndex != std::string::npos)
 		{
 			const std::string cookie = segment.substr(cookieIndex + 7);
-			const size_t usernameIndex = cookie.find("username=") + 9;
-			username = cookie.substr(usernameIndex, cookie.size() - usernameIndex - 1);
+			size_t usernameIndex = cookie.find("username=");
+			if (usernameIndex != std::string::npos)
+			{
+				usernameIndex += 9;
+				size_t usernameEndIndex = cookie.find(";", usernameIndex);
+				if (usernameEndIndex == std::string::npos)
+				{
+					usernameEndIndex = cookie.size() - 1;
+				}
+				cookies.username = cookie.substr(usernameIndex, usernameEndIndex - usernameIndex);
+			}
+
+			size_t assignmentIndex = cookie.find("assignment=");
+			if (assignmentIndex != std::string::npos)
+			{
+				assignmentIndex += 11;
+				size_t assignmentEndIndex = cookie.find(";", assignmentIndex);
+				if (assignmentEndIndex == std::string::npos)
+				{
+					assignmentEndIndex = cookie.size() - 1;
+				}
+				cookies.assignment = cookie.substr(assignmentIndex, assignmentEndIndex - assignmentIndex);
+			}
 		}
 	}
 
@@ -450,7 +471,7 @@ void HandleRequest(const SOCKET connection, const Tester& tester)
 			}
 		}
 
-		HandlePOST(connection, body, url, username, tester);
+		HandlePOST(connection, body, url, cookies, tester);
 	}
 
 	// Ignore everything else

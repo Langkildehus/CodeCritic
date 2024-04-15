@@ -5,6 +5,8 @@
 
 #define BUFFSIZE 4096
 
+extern Database db;
+
 static inline ull GetTime()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -12,8 +14,7 @@ static inline ull GetTime()
     ).count();
 }
 
-Tester::Tester(Database* _db)
-    : db(_db)
+Tester::Tester()
 {
 	// Start threadpool?
 }
@@ -23,23 +24,23 @@ Tester::~Tester()
 	// Stop threadpool?
 }
 
-void Tester::RunTest(const std::string& task, const std::string& name) const
+void Tester::RunTest(const Cookie& cookies) const
 {
 	// Spawn thread to run tests on
 	// Allows HTTP server to keep running while the test is running
-	std::thread t1(&Tester::StartTest, this, task, name);
+	std::thread t1(&Tester::StartTest, this, cookies.assignment, cookies.username);
 	t1.detach();
 }
 
 // ---------- PRIVATE ----------
 
-void Tester::StartTest(const std::string task, const std::string name) const
+void Tester::StartTest(const std::string assignment, const std::string username) const
 {
-	const std::string path = "C:\\dev\\CodeCritic\\CodeCritic\\website\\opgaver\\" + task + "\\";
+	const std::string path = "C:\\dev\\CodeCritic\\CodeCritic\\website\\opgaver\\" + assignment + "\\";
     const std::string sJudgePath = path + "judge.exe";
 
 	// Compile submission
-	const std::string compilePath = Compile(path + name + ".cpp");
+	const std::string compilePath = Compile(path + username + ".cpp");
 
     // Convert file paths to LPCWSTR
     const std::wstring wTestPathName = std::wstring(compilePath.begin(), compilePath.end());
@@ -75,33 +76,40 @@ void Tester::StartTest(const std::string task, const std::string name) const
 
 	// Run test cases
     int points = 0;
+    ull time = 0;
     for (uint c = 0; c < testCases.size(); c++)
     {
-        int point = Test(judgePath, testPath, testCases[c], timeLimit);
-        if (point > 0)
+        Result res = Test(judgePath, testPath, testCases[c], timeLimit);
+        if (res.status == 0)
         {
-            points += point;
+            time += res.time;
+            points += res.points;
         }
-        else if (point == 0)
+        else if (res.status == 1)
         {
-            // Wrong answer
-            std::cout << "Wrong answer!\n";
+            std::cout << "Error creating pipes for judge!\n";
         }
-        else if (point == -1337)
+        else if (res.status == 2)
         {
-            // Timelimit exceeded
-            std::cout << "Timelimit exceeded!\n";
+            std::cout << "Error creating pipes for submission!\n";
+        }
+        else if (res.status == 3)
+        {
+            std::cout << "Error while starting judge\n";
+        }
+        else if (res.status == 4)
+        {
+            std::cout << "Error while starting submission\n";
         }
         else
         {
-            // Error
-            std::cout << "Error during testing!\n";
+            std::cout << "Timelimit exceeded!\n";
         }
     }
     std::cout << "Score: " << points << '/' << testCases.size() << "\n";
 
 	// Save test result in DB
-	SaveScore(task, points, name);
+	SaveScore(assignment, username, points, time);
 
 	// Remove compiled file after all tests
 	Delete(compilePath);
@@ -119,12 +127,12 @@ inline std::string Tester::Compile(const std::string& path) const
 	return compilePath;
 }
 
-inline void Tester::SaveScore(const std::string& task, const int score, const std::string& name) const
+inline void Tester::SaveScore(const std::string& assignment, const std::string& username,
+    const int points, const ull time) const
 {
 	// Save score to DB
-    std::cout << "task: '" << task << "'\n";
-    std::cout << "name: '" << name << "'\n";
-    db->insertData(task, score, name);
+    db.insertData(assignment, username, points, time);
+    db.selectData(assignment);
 }
 
 inline void Tester::Delete(const std::string& deletePath) const
@@ -133,12 +141,13 @@ inline void Tester::Delete(const std::string& deletePath) const
 	std::remove(deletePath.c_str());
 }
 
-int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::string& testData, const int timeLimit) const
+Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
+    const std::string& testData, const int timeLimit) const
 {
     // https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
     // Prepare test
-    int points = 0;
+    Result res{};
     std::vector<std::string> inputs;
     std::vector<std::string> outputs;
     
@@ -162,49 +171,55 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
     // Create pipe for the judge stdout
     if (!CreatePipe(&judgeStdOutRead, &judgeStdOutWrite, &security, 0))
     {
-        return -1;
+        res.status = 1;
+        return res;
     }
     // read handle to stdout should not be inherited
     if (!SetHandleInformation(judgeStdOutRead, HANDLE_FLAG_INHERIT, 0))
     {
-        return -2;
+        res.status = 1;
+        return res;
     }
 
     // Create pipe for the judge stdin
     if (!CreatePipe(&judgeStdInRead, &judgeStdInWrite, &security, 0))
     {
-        return -3;
+        res.status = 1;
+        return res;
     }
     // read handle to stdin should not be inherited
     if (!SetHandleInformation(judgeStdInWrite, HANDLE_FLAG_INHERIT, 0))
     {
-        return -4;
+        res.status = 1;
+        return res;
     }
 
 
     // Create pipe for the child stdout
     if (!CreatePipe(&childStdOutRead, &childStdOutWrite, &security, 0))
     {
-        return -1;
+        res.status = 2;
+        return res;
     }
     // read handle to stdout should not be inherited
     if (!SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0))
     {
-        return -2;
+        res.status = 2;
+        return res;
     }
 
     // Create pipe for the child stdin
     if (!CreatePipe(&childStdInRead, &childStdInWrite, &security, 0))
     {
-        return -3;
+        res.status = 2;
+        return res;
     }
     // read handle to stdin should not be inherited
     if (!SetHandleInformation(childStdInWrite, HANDLE_FLAG_INHERIT, 0))
     {
-        return -4;
+        res.status = 2;
+        return res;
     }
-    
-
 
 
     // Specify stdin and stdout handles for judge
@@ -235,7 +250,8 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
     if (!judgeSuccess)
     {
         std::cout << "CreateProcess failed for judge: " << GetLastError() << "\n";
-        return -5;
+        res.status = 3;
+        return res;
     }
     
     WriteToPipe(judgeStdInWrite, testData);
@@ -274,7 +290,8 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
     if (!success)
     {
         std::cout << "CreateProcess failed for submission: " << GetLastError() << "\n";
-        return -6;
+        res.status = 4;
+        return res;
     }
 
     // Close no longer needed handles
@@ -303,8 +320,16 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
             const size_t pos = output.find('\r');
             if (pos != std::string::npos)
             {
-                std::cout << "judge answer: '" << output.substr(pos + 1) << "'\n";
-                points = std::stoi(output.substr(pos + 1));
+                WaitForSingleObject(processInfo.hProcess, timeLimit + start - now);
+                now = GetTime();
+                if (now - start > timeLimit)
+                {
+                    break;
+                }
+
+                std::cout << "Judge rating: '" << output.substr(pos + 1) << "'\n";
+                res.points = std::stoi(output.substr(pos + 1));
+                res.time = now - start;
                 break;
             }
             else
@@ -318,7 +343,7 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
     }
     if (now - start > timeLimit)
     {
-        points = -1337;
+        res.status = 5;
     }
 
     // Start termination process (Process is async, so we need to wait afterwards)
@@ -342,7 +367,7 @@ int Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::s
     CloseHandle(processInfo.hThread);
 
 	// Return result of test
-	return points;
+	return res;
 }
 
 void Tester::WriteToPipe(const HANDLE& pipeHandle, const std::string& msg) const
