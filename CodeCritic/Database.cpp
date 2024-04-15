@@ -81,7 +81,7 @@ int Database::insertData(const std::string& tName, const std::string& username, 
 		std::cerr << "Error in insertData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
 		
-		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "' WHERE UserID = '" + std::to_string(ID) + "', '" + std::to_string(time) + "';");
+		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "', Time = '" + std::to_string(time) + "' WHERE UserID = '" + std::to_string(ID) + "';");
 
 		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 		if (exit != SQLITE_OK) 
@@ -160,6 +160,22 @@ int Database::selectData(const std::string& tName)
 
 std::string** Database::Assigmentleaderboard(const std::string tName) 
 {
+	//char* messageError;
+
+	//std::string sql = "SELECT * FROM " + tName + "ORDER BY Points DESC";
+
+	///* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here*/
+	//int exit = sqlite3_exec(DB, sql.c_str(), callback, NULL, &messageError);
+
+	//if (exit != SQLITE_OK) {
+	//	std::cerr << "Error in selectData function." << "\n" << messageError << "\n";
+	//	sqlite3_free(messageError);
+	//}
+	//else
+	//	std::cout << "Records selected Successfully!" << "\n";
+
+	//return 0;
+
 	sqlite3_stmt* stmt;
 	std::string sql = "SELECT ID FROM" + tName + "ORDER BY Points DESC;";
 	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
@@ -167,8 +183,9 @@ std::string** Database::Assigmentleaderboard(const std::string tName)
 	if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
 	{
 		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
-		return false;
+		return nullptr;
 	}
+
 
 
 	//LB[]
