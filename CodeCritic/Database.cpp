@@ -73,14 +73,14 @@ int Database::insertData(const std::string& tName, const int Points, const std::
 		return 0;
 	}
 	ID = sqlite3_column_int(stmt, 0);
-	sql = "INSERT INTO " + tName + " (UserID, Points) VALUES('" + std::to_string(ID) + "', '" + std::to_string(Points) + "')";
+	sql = "INSERT INTO " + tName + " (UserID, Points) VALUES('" + std::to_string(ID) + "', '" + std::to_string(Points) + "');";
 	
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
 		
-		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "' WHERE UserID = '" + std::to_string(ID) + "'");
+		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "' WHERE UserID = '" + std::to_string(ID) + "';");
 
 		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 		if (exit != SQLITE_OK) 
