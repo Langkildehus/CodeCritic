@@ -30,14 +30,15 @@ Database::~Database()
 	sqlite3_close(DB);
 }
 
-int Database::createTable(const std::string& tName)
+int Database::createAssignment(const std::string& tName)
 {
 	char* messageError;
 	std::string sql;
 	sql = "CREATE TABLE IF NOT EXISTS " + tName + "("
 		"ID			INTEGER PRIMARY KEY AUTOINCREMENT, "
 		"UserID     INTEGER UNIQUE NOT NULL, "
-		"Points		INTEGER NOT NULL);";
+		"Points		INTEGER NOT NULL, "
+		"Time		INTEGER NOT NULL); ";
 
 
 	try
@@ -59,7 +60,7 @@ int Database::createTable(const std::string& tName)
 	return 0;
 }
 
-int Database::insertData(const std::string& tName, const int Points, const std::string& username)
+int Database::insertData(const std::string& tName, const std::string& username, const int Points, const ull time)
 {
 	char* messageError;
 	int ID;
@@ -73,14 +74,14 @@ int Database::insertData(const std::string& tName, const int Points, const std::
 		return 0;
 	}
 	ID = sqlite3_column_int(stmt, 0);
-	sql = "INSERT INTO " + tName + " (UserID, Points) VALUES('" + std::to_string(ID) + "', '" + std::to_string(Points) + "');";
+	sql = "INSERT INTO " + tName + " (UserID, Points, Time) VALUES('" + std::to_string(ID) + "', '" + std::to_string(Points) + "', '" + std::to_string(time) + "');";
 	
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
 		
-		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "' WHERE UserID = '" + std::to_string(ID) + "';");
+		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "' WHERE UserID = '" + std::to_string(ID) + "', '" + std::to_string(time) + "';");
 
 		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 		if (exit != SQLITE_OK) 
@@ -118,7 +119,7 @@ bool Database::signup(const std::string& username, const std::string& password)
 	
 }
 
-bool Database::checkLogin(std::string& username, std::string& Password)
+bool Database::checkLogin(const std::string& username, const std::string& Password)
 {
 	sqlite3_stmt* stmt;
 	std::string sql = "SELECT PASSWORD FROM Users WHERE USERNAME= '" + username + "';";
@@ -155,4 +156,20 @@ int Database::selectData(const std::string& tName)
 		std::cout << "Records selected Successfully!" << "\n";
 
 	return 0;
+}
+
+std::string** Database::Assigmentleaderboard(const std::string tName) 
+{
+	sqlite3_stmt* stmt;
+	std::string sql = "SELECT ID FROM" + tName + "ORDER BY Points DESC;";
+	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+
+	if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
+	{
+		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
+		return false;
+	}
+
+
+	//LB[]
 }
