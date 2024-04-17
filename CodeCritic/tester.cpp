@@ -82,8 +82,11 @@ void Tester::StartTest(const std::string assignment, const std::string username)
         Result res = Test(judgePath, testPath, testCases[c], timeLimit);
         if (res.status == 0)
         {
-            time += res.time;
-            points += res.points;
+            if (res.points > 0)
+            {
+                time += res.time;
+                points += res.points;
+            }
         }
         else if (res.status == 1)
         {
@@ -374,7 +377,7 @@ void Tester::WriteToPipe(const HANDLE& pipeHandle, const std::string& msg) const
 {
 	// Allocate memory for msg size + 1 (the +1 is for a break character at the end '\n')
 	const size_t size = 1 + msg.size();
-    CHAR* inputBuf = new CHAR[size];
+    CHAR* inputBuf = new CHAR[size]; // DENNE LINJE ER MEGA LANGSOM
 	if (inputBuf == nullptr)
 	{
 		return;
