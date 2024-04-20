@@ -10,7 +10,7 @@ extern Database db;
 static inline ull GetTime()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()
+        std::chrono::high_resolution_clock::now().time_since_epoch()
     ).count();
 }
 
