@@ -24,7 +24,7 @@ Tester::~Tester()
     // Stop threadpool?
 }
 
-void Tester::RunTest(const Cookie& cookies) const
+void Tester::RunTest(const Cookie& cookies)
 {
     // Spawn thread to run tests on
     // Allows HTTP server to keep running while the test is running
@@ -34,8 +34,11 @@ void Tester::RunTest(const Cookie& cookies) const
 
 // ---------- PRIVATE ----------
 
-void Tester::StartTest(const std::string assignment, const std::string username) const
+void Tester::StartTest(const std::string assignment, const std::string username)
 {
+    // Wait for mutex lock
+    std::lock_guard<std::mutex> lockGuard(runMtx);
+    
     const std::string path = "C:\\dev\\CodeCritic\\CodeCritic\\website\\opgaver\\" + assignment + "\\";
     const std::string sJudgePath = path + "judge.exe";
 
@@ -77,39 +80,45 @@ void Tester::StartTest(const std::string assignment, const std::string username)
     // Run test cases
     int points = 0;
     ull time = 0;
+    std::cout << "Starting test for " << username << ":\n";
     for (uint c = 0; c < testCases.size(); c++)
     {
         const Result res = Test(judgePath, testPath, testCases[c], timeLimit);
-        if (res.status == 0)
+        std::cout << '[' << c + 1 << '/' << testCases.size() << "]: ";
+        switch (res.status)
         {
+        case 0:
             if (res.points > 0)
             {
                 time += res.time;
                 points += res.points;
             }
-        }
-        else if (res.status == 1)
-        {
+            std::cout << "Points: " << res.points << ", Time taken: " << res.time << "\n";
+            break;
+        case 1:
             std::cout << "Error creating pipes for judge!\n";
-        }
-        else if (res.status == 2)
-        {
+            break;
+        case 2:
             std::cout << "Error creating pipes for submission!\n";
-        }
-        else if (res.status == 3)
-        {
+            break;
+        case 3:
             std::cout << "Error while starting judge\n";
-        }
-        else if (res.status == 4)
-        {
+            break;
+        case 4:
             std::cout << "Error while starting submission\n";
-        }
-        else
-        {
+            break;
+        case 5:
             std::cout << "Timelimit exceeded!\n";
+            break;
+        case 6:
+            std::cout << "Judge failed to load test data\n";
+            break;
+        default:
+            std::cout << "Unknown error during test\n";
+            break;
         }
     }
-    std::cout << "Score: " << points << '/' << testCases.size() << "\n";
+    std::cout << "Score: " << points << '/' << testCases.size() << ", Time taken: " << time << "\n";
 
     // Save test result in DB
     SaveScore(assignment, username, points, time);
@@ -124,7 +133,7 @@ inline std::string Tester::Compile(const std::string& path) const
     const std::string compilePath = path.substr(0, path.size() - 4) + ".exe";
 
     // Compile file on given path
-    const std::string cmd = "g++ --std=c++17 -O2 -o " + compilePath + " " + path;
+    const std::string cmd = "g++ --std=c++17 -O3 -o " + compilePath + " " + path;
     std::system(cmd.c_str());
 
     return compilePath;
@@ -145,7 +154,7 @@ inline void Tester::Delete(const std::string& deletePath) const
 }
 
 Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
-    const std::string& testData, const int timeLimit) const
+    std::string& testData, const int timeLimit) const
 {
     // https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
@@ -292,101 +301,159 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
     }
 
     {
+        // Give time for CreateProcess to finish starting the process
         using namespace std::chrono_literals;
-        std::this_thread::sleep_for(500ms);
+        std::this_thread::sleep_for(10ms);
     }
 
-    ull start = GetTime();
-    //std::string* writeStr = &testData;
-    //std::thread judgeWriteThread(&Tester::WriteThread, this, judgeStdInWrite, writeStr);
-    //std::thread submissionWriteThread(&Tester::WriteThread, this, childStdInWrite, writeStr);
+    WriteThreadData judgeWriteData{ judgeStdInWrite };
+    std::thread judgeWriteThread;
+    {
+        std::unique_lock<std::mutex> lock(judgeWriteData.mtx);
+        judgeWriteThread = std::thread(&Tester::WriteThread, this, &judgeWriteData);
+        judgeWriteData.cnd.wait(lock);
+    }
+    
+    WriteThreadData submissionWriteData{ childStdInWrite };
+    std::thread submissionWriteThread;
+    {
+        std::unique_lock<std::mutex> lock(submissionWriteData.mtx);
+        submissionWriteThread = std::thread(&Tester::WriteThread, this, &submissionWriteData);
+        submissionWriteData.cnd.wait(lock);
+    }
 
-    WriteToPipe(judgeStdInWrite, testData);
-    while (GetTime() - start < 10 * timeLimit
+    judgeWriteData.str = &testData;
+    judgeWriteData.cnd.notify_one();
+    ull start = GetTime();
+    while (GetTime() - start < 5 * timeLimit
         && (outputs.size() < 1 || outputs[outputs.size() - 1].find('\r') == std::string::npos))
     {
         ReadFromPipe(judgeStdOutRead, outputs);
     }
-
-    // Start timer
-    start = GetTime();
-    ull now = start;
-
-    // Start test by starting to write input
-    WriteToPipe(childStdInWrite, testData);
-    while (now - start <= timeLimit)
+    if (GetTime() - start <= 5 * timeLimit)
     {
-        if (ReadFromPipe(childStdOutRead, inputs))
-        {
-            std::string& input = inputs[inputs.size() - 1];
-            CleanFromENDL(input);
+        // Start test
+        submissionWriteData.str = &testData;
+        submissionWriteData.cnd.notify_one();
+        start = GetTime();
+        ull now = start;
 
-            std::cout << "Child stdout: '" << input << "'\n";
-            WriteToPipe(judgeStdInWrite, input);
-        }
-        if (ReadFromPipe(judgeStdOutRead, outputs))
+        while (now - start <= timeLimit)
         {
-            std::string& output = outputs[outputs.size() - 1];
-            CleanFromENDL(output);
-            const size_t pos = output.find('\r');
-
-            if (pos != std::string::npos)
+            if (ReadFromPipe(childStdOutRead, inputs))
             {
-                if (pos > 0)
-                {
-                    // Message pending before exit
-                    const std::string lastInput = output.substr(0, pos);
-                    WriteToPipe(childStdInWrite, lastInput);
-                }
+                std::string& input = inputs[inputs.size() - 1];
+                CleanFromENDL(input);
 
-                WaitForSingleObject(processInfo.hProcess, timeLimit + start - now);
-                now = GetTime();
-                if (now - start > timeLimit)
+                //std::cout << "Child stdout: '" << input << "'\n";
+                while (!judgeWriteData.mtx.try_lock())
                 {
+                    now = GetTime();
+                    if (now - start > timeLimit)
+                    {
+                        goto breakout;
+                    }
+                }
+                judgeWriteData.str = &inputs[inputs.size() - 1];
+                judgeWriteData.mtx.unlock();
+                judgeWriteData.cnd.notify_one();
+            }
+            if (ReadFromPipe(judgeStdOutRead, outputs))
+            {
+                std::string& output = outputs[outputs.size() - 1];
+                CleanFromENDL(output);
+                const size_t pos = output.find('\r');
+
+                if (pos != std::string::npos)
+                {
+                    if (pos > 0)
+                    {
+                        // Message pending before exit
+                        const std::string lastInput = output.substr(0, pos);
+                        while (!submissionWriteData.mtx.try_lock())
+                        {
+                            now = GetTime();
+                            if (now - start > timeLimit)
+                            {
+                                goto breakout;
+                            }
+                        }
+                        submissionWriteData.mtx.unlock();
+                        WriteToPipe(childStdInWrite, lastInput); // Last input doesn't need to be threaded
+                    }
+
+                    WaitForSingleObject(processInfo.hProcess, timeLimit);
+                    now = GetTime();
+                    if (now - start > timeLimit)
+                    {
+                        break;
+                    }
+
+                    std::string result = output.substr(pos + 1);
+                    for (int c = 0; c < result.size(); c++)
+                    {
+                        if (result[c] == '\r' || result[c] == '\n')
+                        {
+                            result.erase(c, 1);
+                        }
+                    }
+
+                    std::cout << "Judge rating: " << result << '\n';
+                    res.points = std::stoi(result);
+                    res.time = now - start;
                     break;
                 }
+                else
+                {
+                    //std::cout << "Judge interaction: '" << output << "'\n";
+                    while (!submissionWriteData.mtx.try_lock())
+                    {
+                        now = GetTime();
+                        if (now - start > timeLimit)
+                        {
+                            goto breakout;
+                        }
+                    }
+                    submissionWriteData.str = &outputs[outputs.size() - 1];
+                    submissionWriteData.mtx.unlock();
+                    submissionWriteData.cnd.notify_one();
+                }
+            }
 
-                std::cout << "Judge rating: " << output.substr(pos + 1) << '\n';
-                res.points = std::stoi(output.substr(pos + 1));
-                res.time = now - start;
-                break;
-            }
-            else
-            {
-                std::cout << "Judge interaction: '" << output << "'\n";
-                WriteToPipe(childStdInWrite, output);
-            }
+            now = GetTime();
         }
 
-        now = GetTime();
+    breakout:
+        if (now - start > timeLimit)
+        {
+            res.status = 5;
+        }
     }
-    if (now - start > timeLimit)
+    else
     {
-        res.status = 5;
+        res.status = 6;
     }
 
+    // Tell threads to close
+    judgeWriteData.go = false;
+    judgeWriteData.cnd.notify_one();
+    submissionWriteData.go = false;
+    submissionWriteData.cnd.notify_one();
+
+    // Start termination process (Process is async, so we need to wait afterwards)
+    TerminateProcess(processInfoJudge.hProcess, 0);
+    TerminateProcess(processInfo.hProcess, 0);
+
     // Close all handles
-    DisconnectNamedPipe(judgeStdOutWrite);
-    DisconnectNamedPipe(judgeStdInRead);
-    DisconnectNamedPipe(childStdOutWrite);
-    DisconnectNamedPipe(childStdInRead);
     CloseHandle(judgeStdOutWrite);
     CloseHandle(judgeStdInRead);
     CloseHandle(childStdOutWrite);
     CloseHandle(childStdInRead);
 
-    DisconnectNamedPipe(judgeStdInWrite);
-    DisconnectNamedPipe(judgeStdOutRead);
-    DisconnectNamedPipe(childStdInWrite);
-    DisconnectNamedPipe(childStdOutRead);
     CloseHandle(judgeStdInWrite);
     CloseHandle(judgeStdOutRead);
     CloseHandle(childStdInWrite);
     CloseHandle(childStdOutRead);
-
-    // Start termination process (Process is async, so we need to wait afterwards)
-    TerminateProcess(processInfoJudge.hProcess, 0);
-    TerminateProcess(processInfo.hProcess, 0);
 
     // Wait until child processes have been terminated
     WaitForSingleObject(processInfoJudge.hProcess, INFINITE);
@@ -398,6 +465,10 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
     CloseHandle(processInfo.hProcess);
     CloseHandle(processInfo.hThread);
 
+    // Wait for threads to exit
+    judgeWriteThread.join();
+    submissionWriteThread.join();
+
     // Return result of test
     return res;
 }
@@ -408,32 +479,21 @@ void Tester::WriteToPipe(const HANDLE& pipeHandle, const std::string& msg) const
     WriteFile(pipeHandle, "\n", 1, NULL, NULL);
 }
 
-bool Tester::ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& vec, const bool waitForData) const
+bool Tester::ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& vec) const
 {
     DWORD available, dwRead;
-    if (!waitForData)
+
+    // Check if there is anything to be read
+    const BOOL success = PeekNamedPipe(pipeHandle, NULL, NULL, NULL, &available, NULL);
+    if (!(success && available > 0))
     {
-        // Check if there is anything to be read
-        const BOOL success = PeekNamedPipe(pipeHandle, NULL, NULL, NULL, &available, NULL);
-        if (!(success && available > 0))
-        {
-            return false;
-        }
-    }
-    else
-    {
-        // Set available amount of bytes to 1 when waitForData is true
-        // This will cause this function to wait until at least one byte has been read
-        available = 1;
+        return false;
     }
 
     // Create space in vector for new input data
     const size_t c = vec.size();
     vec.emplace_back("");
-    if (!waitForData)
-    {
-        vec[c].reserve(available);
-    }
+    vec[c].reserve(available);
 
     // Create buffer for reading all the available bytes one chunk at a time (up to BUFFSIZE at a time)
     CHAR outputBuf[BUFFSIZE];
@@ -456,28 +516,41 @@ bool Tester::ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& ve
     return true;
 }
 
-/*void Tester::WriteThread(const HANDLE& pipeHandle, std::string* msg)
+void Tester::WriteThread(WriteThreadData* threadData) const
 {
-    while (true)
+    threadData->cnd.notify_one();
+    while (threadData->go)
     {
-        std::unique_lock<std::mutex> lck(writeMtx);
-        while (!msg->length())
+        // Acquire lock & wait
+        std::unique_lock<std::mutex> lock(threadData->mtx);
+        threadData->cnd.wait(lock);
+
+        // Make sure there is something to read
+        if (threadData->str == nullptr)
         {
-            writeCnd.wait(lck);
+            continue;
         }
-        WriteToPipe(pipeHandle, *msg);
+
+        // Make sure thread is still supposed to run
+        if (!threadData->go)
+        {
+            break;
+        }
+        
+        // Write data and reset pointer
+        WriteToPipe(threadData->pipeHandle, *threadData->str);
+        threadData->str = nullptr;
     }
-}*/
+}
 
 inline void Tester::CleanFromENDL(std::string& str) const
 {
     size_t pos = str.find('\r');
     while (pos != std::string::npos)
     {
-        if (str[pos + 1] == '\n')
+        if (str.size() > pos + 1 && str[pos + 1] == '\n')
         {
-            str.erase(pos, 1);
-            pos--;
+            str[pos] = ' ';
         }
         pos = str.find('\r', pos + 1);
     }

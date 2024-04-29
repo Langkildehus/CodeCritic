@@ -4,6 +4,9 @@ typedef unsigned long long ull;
 
 int main()
 {
+    std::ios_base::sync_with_stdio(0);
+    std::cin.tie(0);
+    std::cout.tie(0);
     std::string s;
     ull n;
     std::cin >> n;

@@ -14,7 +14,7 @@ typedef unsigned long long ull;
 #include <filesystem>
 #include <chrono>
 #include <thread>
-//#include <mutex>
+#include <mutex>
 
 // Windows includes
 #include <WinSock2.h>

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <time.h>
 typedef unsigned long long ull;
 
 int main()
@@ -7,6 +8,7 @@ int main()
     int counter = 0;
     ull n;
     std::cin >> n;
+    srand(time(NULL));
     const ull num = (rand() % (n - 1)) + 1;
 
     std::cout << '\r';

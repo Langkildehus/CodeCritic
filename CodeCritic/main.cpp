@@ -4,7 +4,7 @@
 #include "socket.h"
 #include "database.h"
 
-void HandleRequest(const SOCKET connection, const Tester& tester);
+void HandleRequest(const SOCKET connection, Tester* tester);
 Database db{}; //create a instance of Database
 
 void CreateAssignmentTables()
@@ -33,7 +33,7 @@ int main()
 	db.signup("ML", "1234");
 
 	// Instantiate Tester
-	Tester tester = Tester();
+	Tester tester{};
 
 	// Start listening on webserver
 	Socket server = Socket("127.0.0.1", 80);
@@ -50,7 +50,7 @@ int main()
 		}
 
 		// Create thread for connection and detatch it
-		std::thread handleThread(HandleRequest, connection, tester);
+		std::thread handleThread(HandleRequest, connection, &tester);
 		handleThread.detach();
 	}
 }

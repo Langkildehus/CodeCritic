@@ -197,7 +197,7 @@ void ParseLoginJson(const std::string& msg, std::string& username, std::string& 
 }
 
 void HandlePOST(const SOCKET connection, const std::string& msg, const std::string& url,
-	const Cookie& cookies, const Tester& tester)
+	const Cookie& cookies, Tester* tester)
 {
 	if (url == "/login")
 	{
@@ -311,7 +311,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 
 		sourceFile << sourceCode;
 		sourceFile.close();
-		tester.RunTest(cookies);
+		tester->RunTest(cookies);
 	}
 	else
 	{
@@ -321,7 +321,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 	}
 }
 
-void HandleRequest(const SOCKET connection, const Tester& tester)
+void HandleRequest(const SOCKET connection, Tester* tester)
 {
 	// The HTTP header needs to be read first, before we know the length of the body - if there is a body
 	// Create buffer for reading from the socket & a string to save header in
