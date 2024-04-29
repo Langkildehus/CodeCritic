@@ -148,45 +148,30 @@ int Database::selectData(const std::string& tName)
 	return 0;
 }
 
-std::string** Database::Assigmentleaderboard(const std::string tName) 
+std::string Database::Assigmentleaderboard(const std::string tName) 
 {
-	//char* messageError;
-
-	//std::string sql = "SELECT * FROM " + tName + "ORDER BY Points DESC";
-
-	///* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here*/
-	//int exit = sqlite3_exec(DB, sql.c_str(), callback, NULL, &messageError);
-
-	//if (exit != SQLITE_OK) {
-	//	std::cerr << "Error in selectData function." << "\n" << messageError << "\n";
-	//	sqlite3_free(messageError);
-	//}
-	//else
-	//	std::cout << "Records selected Successfully!" << "\n";
-
-	//return 0;
-
 	sqlite3_stmt* stmt;
-	std::string sql = "SELECT Username FROM " + tName + " ORDER BY Points DESC;";
+	std::string sql = "SELECT Username, Points, Time FROM " + tName + " ORDER BY Points DESC, Time ASC;";
 	std::vector<std::string> Leaderboard;
+	std::string str = "[";
 	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
+
 
 	while(true)
 	{
 		if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
 		{
 			std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
-			for (int c = 0; c < Leaderboard.size(); c++) 
-			{
-				std::cout << Leaderboard[c] << "\n";
-			}
-
-			return nullptr;
+			str[str.size() - 1] = ']';
+			std::cout << str;
+			return str;
 		}
-	
-	//Leaderboard.push_back(std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))));
-	Leaderboard.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-	}
+		str += '{';
 
-	//LB[]
+		str += "\"name\": \"" + std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))) + "\",";
+		str += "\"points\": " + std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1))) + ',';
+		str += "\"time\": " + std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+
+		str += " },";
+	}
 }

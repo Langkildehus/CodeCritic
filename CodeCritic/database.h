@@ -13,7 +13,7 @@ public:
 	bool signup(const std::string& username, const std::string& password);
 	int selectData(const std::string& tName);
 	bool checkLogin(const std::string& username, const std::string& Password);
-	std::string** Assigmentleaderboard(const std::string tName);
+	std::string Assigmentleaderboard(const std::string tName);
 	//std::string* leaderboard();
 	
 private:
