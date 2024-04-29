@@ -36,7 +36,7 @@ int Database::createAssignment(const std::string& tName)
 	std::string sql;
 	sql = "CREATE TABLE IF NOT EXISTS " + tName + "("
 		"ID			INTEGER PRIMARY KEY AUTOINCREMENT, "
-		"UserID     INTEGER UNIQUE NOT NULL, "
+		"Username   STRING UNIQUE NOT NULL, "
 		"Points		INTEGER NOT NULL, "
 		"Time		INTEGER NOT NULL); ";
 
@@ -64,24 +64,14 @@ int Database::insertData(const std::string& tName, const std::string& username, 
 {
 	char* messageError;
 	int ID;
-	sqlite3_stmt* stmt;
-	std::string sql = "SELECT ID FROM Users WHERE USERNAME= '" + username + "';";
-	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
-
-	if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
-	{
-		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
-		return 0;
-	}
-	ID = sqlite3_column_int(stmt, 0);
-	sql = "INSERT INTO " + tName + " (UserID, Points, Time) VALUES('" + std::to_string(ID) + "', '" + std::to_string(Points) + "', '" + std::to_string(time) + "');";
+	std::string sql = "INSERT INTO " + tName + " (Username, Points, Time) VALUES('" + username + "', '" + std::to_string(Points) + "', '" + std::to_string(time) + "');";
 	
-	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+	int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
 		
-		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "', Time = '" + std::to_string(time) + "' WHERE UserID = '" + std::to_string(ID) + "';");
+		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "', Time = '" + std::to_string(time) + "' WHERE Username = '" + username + "';");
 
 		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
 		if (exit != SQLITE_OK) 
@@ -177,16 +167,26 @@ std::string** Database::Assigmentleaderboard(const std::string tName)
 	//return 0;
 
 	sqlite3_stmt* stmt;
-	std::string sql = "SELECT ID FROM" + tName + "ORDER BY Points DESC;";
+	std::string sql = "SELECT Username FROM " + tName + " ORDER BY Points DESC;";
+	std::vector<std::string> Leaderboard;
 	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
 
-	if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
+	while(true)
 	{
-		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
-		return nullptr;
+		if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
+		{
+			std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
+			for (int c = 0; c < Leaderboard.size(); c++) 
+			{
+				std::cout << Leaderboard[c] << "\n";
+			}
+
+			return nullptr;
+		}
+	
+	//Leaderboard.push_back(std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))));
+	Leaderboard.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 	}
-
-
 
 	//LB[]
 }
