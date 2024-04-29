@@ -20,3 +20,28 @@ code div {
     padding: 5px;
     width: fit-content;
 }
+
+.leaderboard {
+    background-color: lightgray;
+    max-height: 400px;
+    overflow-y: auto;
+    width: fit-content;
+    height: fit-content;
+}
+
+table {
+    size: 20px;
+    border-collapse: collapse;
+    border: 2px solid black;
+}
+
+th {
+    background-color: aqua;
+}
+
+th, td {
+    padding: 20px 40px 20px 10px;
+    text-align: center;
+    border-bottom: 1px solid black;
+    border-collapse: collapse;
+}

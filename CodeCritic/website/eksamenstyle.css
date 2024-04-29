@@ -151,6 +151,7 @@ textarea {
 #sidebutton {
     height: 5%;
     width: 100%;
+    text-align: center;
 }
 
 #sidebutton  button {
