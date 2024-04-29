@@ -29,4 +29,12 @@ private:
     Result Test(const LPCWSTR& judgePath, const LPCWSTR& testPath, const std::string& testData, const int timeLimit) const;
     void WriteToPipe(const HANDLE& pipeHandle, const std::string& msg) const;
     bool ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& vec, const bool waitForData = false) const;
+    //void WriteThread(const HANDLE& pipeHandle, std::string* msg) const;
+    inline void CleanFromENDL(std::string& str) const;
+
+private:
+    //std::mutex runMtx;
+
+    //std::mutex writeMtx;
+    //std::condition_variable writeCnd;
 };

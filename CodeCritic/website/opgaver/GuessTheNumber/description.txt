@@ -1,25 +1,38 @@
 --Title--
-Opgave 1
+Guess the number
 --Title--
 --Description--
-Walid har meget dårlig hukommelse. Han vil gerne vide, hvor mange penge han tjente på den lønseddel, som han tjente flest penge på.
-Givet en liste af længden, n, antallet af lønsedler, hvor hvert element er antal kr. tjent på den lønseddel, skal du fortælle Walid, hvor mange penge han tjente på sin største lønseddel.
+Du kan ikke huske, hvor mange penge du har stående på bankkontoen. Banken er meget primitiv, og starter derfor med at sige, hvor mange penge du højst kan have på kontoen, n. Herefter kan du blive ved med at gætte på et tal mellem 1 og n, indtil du gætter rigtigt. Hver gang du gætter svarer banken med "HIGHER", "LOWER" eller "CORRECT". For at banken ikke bliver træt af dig, skal du på så få gæt som muligt finde ud af, hvor mange penge du har stående på kontoen.
 --Description--
 --Input--
+StartInput
 Linje 1: Tallet n
-Linje 2: n mellemrums separeret tal, m
+
+Interaktivt efter hvert gæt:
+Linje 1: Streng med resultatet af dit gæt
 --Input--
 --Output--
-Walids højeste løn
+Interaktivt:
+Linje 1: Dit gæt, et tal
 --Output--
 --ExampleInput--
-5
-2 10 50 40 69
+10
 --ExampleInput--
 --ExampleOutput--
-69
+Interaktivt:
+1
+SVAR: HIGHER
+
+2
+SVAR: HIGHER
+
+5
+SVAR: LOWER
+
+4
+SVAR: CORRECT
 --ExampleOutput--
 --Constraints--
-1 &#8804; n &#8804; 100000
+1 &#8804; n &#8804; 100000000000000000
 Time: 1 second
 --Constraints--

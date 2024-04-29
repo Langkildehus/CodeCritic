@@ -8,12 +8,13 @@ typedef unsigned long long ull;
 #include <vector>
 #include <sstream>
 #include <fstream>
-#include <thread>
 #include <utility>
 #include <cstdio>
 #include <stdlib.h>
 #include <filesystem>
 #include <chrono>
+#include <thread>
+//#include <mutex>
 
 // Windows includes
 #include <WinSock2.h>
@@ -26,6 +27,6 @@ typedef unsigned long long ull;
 
 struct Cookie
 {
-	std::string username = "";
-	std::string assignment = "";
+    std::string username = "";
+    std::string assignment = "";
 };

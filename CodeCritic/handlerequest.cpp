@@ -155,7 +155,7 @@ void HandleGET(const SOCKET connection, const std::string& url)
 			return;
 		}
 	}
-	
+
 	// Send response header
 	send(connection, "HTTP/1.1 200 OK\r\n\r\n", 19, 0);
 
@@ -296,8 +296,12 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 				sourceCode[c - 1] = '\t';
 				sourceCode.erase(c, 1);
 				break;
+			case '"':
+				sourceCode.erase(c - 1, 1);
+				break;
 			default:
 				std::cout << "Escaped character not found: " << sourceCode[c] << "\n";
+				std::cout << "IN:\n" << sourceCode << "\n";
 				sourceCode.erase(c - 1, 1);
 				break;
 			}

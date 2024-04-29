@@ -22,21 +22,18 @@
     <ClCompile Include="database.cpp" />
     <ClCompile Include="handlerequest.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="scripttestermain.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="scripttesterOLD.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="tester.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="database.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="scripttester.h" />
     <ClInclude Include="socket.h" />
     <ClInclude Include="tester.h" />
   </ItemGroup>
