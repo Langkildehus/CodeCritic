@@ -16,9 +16,9 @@ xhr.onload = () => {
         console.log("Error");
     }    
 };
-
 window.addEventListener("load", () => {
     checkCookie();
+    checkAssignmentCookie();
 })
 
 /* Login pop-up modal */
@@ -73,6 +73,7 @@ function loginServer(username, password) {
 function chooseAssignment(i) {
     /* Change iframe src */
     document.getElementById("frame").src = `opgaver/${i}`;
+    setCookie('assignment', i, 1);
 }
 
 function signup() {
@@ -140,6 +141,13 @@ function checkCookie() {
     } else {
         document.getElementById("log").innerHTML = "Login";
         document.getElementById("log").setAttribute("onclick", "modal(1)");
+    }
+}
+
+function checkAssignmentCookie() {
+    let assign = getCookie("assignment");
+    if (assign != "") {
+        chooseAssignment(assign);
     }
 }
 

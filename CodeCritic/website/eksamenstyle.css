@@ -68,9 +68,14 @@
     width: 100%;
 }
 
+.body {
+    height: 94%
+}
+
 .top {
     display: block;
-    height: 55px;
+    height: 5.5%;
+    min-height: 50px;
 }  
 
 .top ul {
@@ -137,4 +142,17 @@ iframe {
 
 textarea {
     resize: none;
+}
+
+#side {
+    height: 95%;
+}
+
+#sidebutton {
+    height: 5%;
+    width: 100%;
+}
+
+#sidebutton  button {
+    width: 95%;
 }
