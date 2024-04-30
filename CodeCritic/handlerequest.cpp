@@ -92,10 +92,10 @@ void ReplaceInLine(std::string& line, const std::vector<std::string>& descriptio
 	}
 }
 
-void HandleGET(const SOCKET connection, const std::string& url)
+void HandleGET(const SOCKET connection, const std::string& url, const Cookie& cookies)
 {
 	// Check if GET request is requesting list of tasks
-	if (url.size() == 8 && url.substr(0, 8) == "/opgaver")
+	if (url == "/opgaver")
 	{
 		// Read folders in directory
 		std::string data = "{\"Opgaver\": [";
@@ -114,6 +114,22 @@ void HandleGET(const SOCKET connection, const std::string& url)
 		}
 		data.pop_back(); data.pop_back(); // Remove last two characters: ", "
 		data += "]}";
+
+		// Create response header
+		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: "
+			+ std::to_string(data.size()) + "\r\n\r\n";
+
+		// Send response header
+		send(connection, response.c_str(), response.size(), 0);
+
+		// Send response body
+		send(connection, data.c_str(), data.size(), 0);
+		return;
+	}
+	else if (url == "/leaderboard")
+	{
+		std::cout << "YOO";
+		const std::string data = db.Assigmentleaderboard(cookies.assignment);
 
 		// Create response header
 		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: "
@@ -431,7 +447,7 @@ void HandleRequest(const SOCKET connection, Tester* tester)
 
 	if (type == "GET")
 	{
-		HandleGET(connection, url);
+		HandleGET(connection, url, cookies);
 	}
 	else if (type == "POST")
 	{
