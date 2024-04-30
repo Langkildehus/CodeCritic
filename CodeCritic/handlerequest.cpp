@@ -128,7 +128,6 @@ void HandleGET(const SOCKET connection, const std::string& url, const Cookie& co
 	}
 	else if (url == "/leaderboard")
 	{
-		std::cout << "YOO";
 		const std::string data = db.Assigmentleaderboard(cookies.assignment);
 
 		// Create response header
