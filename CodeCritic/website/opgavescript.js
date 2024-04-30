@@ -1,3 +1,7 @@
+window.addEventListener("load", () => {
+    updateLeaderboard()
+})
+
 
 function submission() {
     console.log(document.getElementById("kildekode").value);
@@ -29,8 +33,8 @@ function updateLeaderboard() {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
             data = xhr.response;
-            for (let i = 0; i < data.names.length; i++) {
-                // add to leaderboard
+            for (let i = 0; i < data.length; i++) {
+                addLine(i+1, data.name, data.points, data.time);
             }
         } else {
             console.log("Leaderboard request failed");
