@@ -133,7 +133,7 @@ inline std::string Tester::Compile(const std::string& path) const
     const std::string compilePath = path.substr(0, path.size() - 4) + ".exe";
 
     // Compile file on given path
-    const std::string cmd = "g++ --std=c++17 -O3 -o " + compilePath + " " + path;
+    const std::string cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + " " + path;
     std::system(cmd.c_str());
 
     return compilePath;
