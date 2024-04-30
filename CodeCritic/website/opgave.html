@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <!-- Define links and charset -->
         <meta charset="UTF-8">
         <link rel="stylesheet" href="../opgavestyle.css">
         <script src="../opgavescript.js"></script>
     </head>
     <body>
+        <!-- iframe template -->
         <h1>{{Title}}</h1>
         <p>{{Description}}</p>
 
@@ -23,12 +25,15 @@
         <h2>Constraints</h2>
         <code>{{Constraints}}</code>
 
+        <!-- Submission button -->
         <h2>Submit</h2>
         <div class="submit">
             <textarea id="kildekode"></textarea>
             <br>
             <button id="submit" onclick="submission()">Submit</button>
         </div>
+
+        <!-- Leaderboard -->
         <h2>Leaderboard</h2>
         <div class="leaderboard">
             <table id="table">
