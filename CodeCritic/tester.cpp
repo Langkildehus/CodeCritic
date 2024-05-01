@@ -80,6 +80,7 @@ void Tester::StartTest(const std::string assignment, const std::string username)
     // Run test cases
     int points = 0;
     ull time = 0;
+    int attempts = 2;
     std::cout << "Starting test for " << username << ":\n";
     for (uint c = 0; c < testCases.size(); c++)
     {
@@ -88,6 +89,7 @@ void Tester::StartTest(const std::string assignment, const std::string username)
         switch (res.status)
         {
         case 0:
+            attempts = 2;
             if (res.points > 0)
             {
                 time += res.time;
@@ -109,6 +111,10 @@ void Tester::StartTest(const std::string assignment, const std::string username)
             break;
         case 5:
             std::cout << "Timelimit exceeded!\n";
+            if (attempts > 0)
+            {
+                c--;
+            }
             break;
         case 6:
             std::cout << "Judge failed to load test data\n";
@@ -159,6 +165,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
     // https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
     // Prepare test
+    using namespace std::chrono_literals; // Used for std::this_thread::sleep_for()
     Result res{};
     std::vector<std::string> inputs;
     std::vector<std::string> outputs;
@@ -302,7 +309,6 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
 
     {
         // Give time for CreateProcess to finish starting the process
-        using namespace std::chrono_literals;
         std::this_thread::sleep_for(10ms);
     }
 
@@ -324,7 +330,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
 
     judgeWriteData.str = &testData;
     judgeWriteData.cnd.notify_one();
-    ull start = GetTime();
+    ull now, start = GetTime();
     while (GetTime() - start < 5 * timeLimit
         && (outputs.size() < 1 || outputs[outputs.size() - 1].find('\r') == std::string::npos))
     {
@@ -336,7 +342,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
         submissionWriteData.str = &testData;
         submissionWriteData.cnd.notify_one();
         start = GetTime();
-        ull now = start;
+        now = start;
 
         while (now - start <= timeLimit)
         {
@@ -345,7 +351,6 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
                 std::string& input = inputs[inputs.size() - 1];
                 CleanFromENDL(input);
 
-                //std::cout << "Child stdout: '" << input << "'\n";
                 while (!judgeWriteData.mtx.try_lock())
                 {
                     now = GetTime();
@@ -398,14 +403,12 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
                         }
                     }
 
-                    std::cout << "Judge rating: " << result << '\n';
                     res.points = std::stoi(result);
                     res.time = now - start;
                     break;
                 }
                 else
                 {
-                    //std::cout << "Judge interaction: '" << output << "'\n";
                     while (!submissionWriteData.mtx.try_lock())
                     {
                         now = GetTime();
@@ -475,7 +478,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
 
 void Tester::WriteToPipe(const HANDLE& pipeHandle, const std::string& msg) const
 {
-    WriteFile(pipeHandle, msg.c_str(), msg.size(), NULL, NULL);
+    WriteFile(pipeHandle, msg.c_str(), (DWORD)msg.size(), NULL, NULL);
     WriteFile(pipeHandle, "\n", 1, NULL, NULL);
 }
 
