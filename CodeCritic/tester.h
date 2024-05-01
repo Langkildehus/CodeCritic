@@ -26,10 +26,10 @@ public:
     Tester();
     ~Tester();
 
-    void RunTest(const Cookie& cookies);
+    void RunTest(const Cookie& cookies, const SOCKET connection);
 
 private:
-    void StartTest(const std::string task, const std::string name);
+    void StartTest(const std::string task, const std::string name, const SOCKET connection);
     inline std::string Compile(const std::string& path) const;
     inline void SaveScore(const std::string& task, const std::string& name, const int points, const ull time) const;
     inline void Delete(const std::string& compiledPath) const;

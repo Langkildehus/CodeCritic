@@ -326,7 +326,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 
 		sourceFile << sourceCode;
 		sourceFile.close();
-		tester->RunTest(cookies);
+		tester->RunTest(cookies, connection);
 	}
 	else
 	{

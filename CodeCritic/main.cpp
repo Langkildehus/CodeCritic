@@ -11,7 +11,7 @@ Database db{}; //create a instance of Database
 
 void SetupAssignments()
 {
-	const std::string path = "C:\\dev\\CodeCritic\\CodeCritic\\website\\opgaver\\";
+	const std::string path = "website\\opgaver\\";
 	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator("website/opgaver"))
 	{
 		// Only look for directories

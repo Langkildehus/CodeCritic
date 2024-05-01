@@ -14,32 +14,49 @@ static inline ull GetTime()
     ).count();
 }
 
-Tester::Tester()
-{
-    // Start threadpool?
-}
+Tester::Tester() { }
 
 Tester::~Tester()
 {
-    // Stop threadpool?
+    using namespace std::chrono_literals; // Used for std::this_thread::sleep_for()
+    
+    int locks = 0;
+    while (true)
+    {
+        // Check to see if mutex can be locked 3 times in a row
+        // When it can, all tests have been completed and class is safe to destruct
+        if (runMtx.try_lock())
+        {
+            locks++;
+            if (locks > 2)
+            {
+                return;
+            }
+            std::this_thread::sleep_for(10ms);
+        }
+        else
+        {
+            locks = 0;
+        }
+    }
 }
 
-void Tester::RunTest(const Cookie& cookies)
+void Tester::RunTest(const Cookie& cookies, const SOCKET connection)
 {
     // Spawn thread to run tests on
     // Allows HTTP server to keep running while the test is running
-    std::thread t1(&Tester::StartTest, this, cookies.assignment, cookies.username);
+    std::thread t1(&Tester::StartTest, this, cookies.assignment, cookies.username, connection);
     t1.detach();
 }
 
 // ---------- PRIVATE ----------
 
-void Tester::StartTest(const std::string assignment, const std::string username)
+void Tester::StartTest(const std::string assignment, const std::string username, const SOCKET connection)
 {
     // Wait for mutex lock
     std::lock_guard<std::mutex> lockGuard(runMtx);
     
-    const std::string path = "C:\\dev\\CodeCritic\\CodeCritic\\website\\opgaver\\" + assignment + "\\";
+    const std::string path = "website\\opgaver\\" + assignment + "\\";
     const std::string sJudgePath = path + "judge.exe";
 
     // Compile submission
@@ -113,6 +130,7 @@ void Tester::StartTest(const std::string assignment, const std::string username)
             std::cout << "Timelimit exceeded!\n";
             if (attempts > 0)
             {
+                attempts--;
                 c--;
             }
             break;
@@ -128,6 +146,9 @@ void Tester::StartTest(const std::string assignment, const std::string username)
 
     // Save test result in DB
     SaveScore(assignment, username, points, time);
+
+    //const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
+    //send(connection, response.c_str(), response.size(), 0);
 
     // Remove compiled file after all tests
     Delete(compilePath);
