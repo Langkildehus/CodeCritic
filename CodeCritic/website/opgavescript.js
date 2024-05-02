@@ -17,6 +17,9 @@ function submission() {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 201) {
             console.log("Accepted");
+            document.getElementById("notLoggedIn").innerHTML = "";
+        } else if (xhr.readyState == 4 && xhr.status == 418) {
+            document.getElementById("notLoggedIn").innerHTML = "Please Login to submit";
         } else {
           console.log(`Error: ${xhr.status}`);
         }
