@@ -44,15 +44,22 @@ Tester::~Tester()
 
 void Tester::RunTest(const Cookie& cookies, const SOCKET connection)
 {
+    if (cookies.assignment.size() < 1 || cookies.username.size() < 1 || cookies.language.size() < 1)
+    {
+        std::cout << "Insufficient cookies to run test!\n";
+        return;
+    }
+
     // Spawn thread to run tests on
     // Allows HTTP server to keep running while the test is running
-    std::thread t1(&Tester::StartTest, this, cookies.assignment, cookies.username, connection);
+    std::thread t1(&Tester::StartTest, this, cookies.assignment, cookies.username, cookies.language, connection);
     t1.detach();
 }
 
 // ---------- PRIVATE ----------
 
-void Tester::StartTest(const std::string assignment, const std::string username, const SOCKET connection)
+void Tester::StartTest(const std::string assignment, const std::string username,
+    const std::string lanugage, const SOCKET connection)
 {
     // Wait for mutex lock
     std::lock_guard<std::mutex> lockGuard(runMtx);
