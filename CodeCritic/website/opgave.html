@@ -7,6 +7,19 @@
         <script src="../opgavescript.js"></script>
     </head>
     <body>
+        <!-- Result modal -->
+        <div id="modal1" class="modal">
+            <div class="mContent">
+                <div class="close">
+                    <button onclick="modalClose(1)">X</button>
+                </div>
+                <div class="result">
+                    <p id="points">Points: </p>
+                    <p id="time">Time: </p>
+                </div>
+            </div>
+        </div>
+
         <!-- iframe template -->
         <h1>{{Title}}</h1>
         <p>{{Description}}</p>
@@ -28,6 +41,13 @@
         <!-- Submission button -->
         
         <h2>Submit</h2>
+        <div class="dropdown" id="dropdown">
+            <button onclick="dropDown()">Language ▼</button>
+            <div id="dropdownContent" class="dropdownContent">
+                <button onclick="setCookie('language','C++',1)">C++</button>
+                <button onclick="setCookie('language','C#',1)">C#</button>
+            </div>
+        </div>
         <div class="submit">
             <textarea id="kildekode"></textarea>
             <br>

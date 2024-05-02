@@ -21,7 +21,7 @@ window.addEventListener("load", () => {
     checkAssignmentCookie();
 })
 
-/* Login pop-up modal */
+/* Modal open */
 function modal(i) {
     document.getElementById(`modal${i}`).style.display = "block";
 }
