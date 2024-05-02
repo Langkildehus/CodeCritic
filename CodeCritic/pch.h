@@ -29,4 +29,5 @@ struct Cookie
 {
     std::string username = "";
     std::string assignment = "";
+    std::string language = "";
 };

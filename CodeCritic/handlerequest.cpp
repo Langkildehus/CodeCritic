@@ -420,6 +420,18 @@ void HandleRequest(const SOCKET connection, Tester* tester)
 				}
 				cookies.assignment = cookie.substr(assignmentIndex, assignmentEndIndex - assignmentIndex);
 			}
+
+			size_t languageIndex = cookie.find("language=");
+			if (languageIndex != std::string::npos)
+			{
+				languageIndex += 9;
+				size_t languageEndIndex = cookie.find(";", languageIndex);
+				if (languageEndIndex == std::string::npos)
+				{
+					languageEndIndex = cookie.size() - 1;
+				}
+				cookies.language = cookie.substr(languageIndex, languageEndIndex - languageIndex);
+			}
 		}
 	}
 

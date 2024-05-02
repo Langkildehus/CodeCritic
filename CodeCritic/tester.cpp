@@ -27,6 +27,7 @@ Tester::~Tester()
         // When it can, all tests have been completed and class is safe to destruct
         if (runMtx.try_lock())
         {
+            runMtx.unlock();
             locks++;
             if (locks > 2)
             {
