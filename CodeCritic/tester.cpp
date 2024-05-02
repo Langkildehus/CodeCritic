@@ -58,6 +58,7 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     
     const std::string path = "website\\opgaver\\" + assignment + "\\";
     const std::string sJudgePath = path + "judge.exe";
+    const std::string cppPath = path + username + ".cpp";
 
     // Compile submission
     const std::string compilePath = Compile(path + username + ".cpp");
@@ -152,6 +153,7 @@ void Tester::StartTest(const std::string assignment, const std::string username,
 
     // Remove compiled file after all tests
     Delete(compilePath);
+    Delete(cppPath);
 }
 
 inline std::string Tester::Compile(const std::string& path) const
@@ -171,7 +173,6 @@ inline void Tester::SaveScore(const std::string& assignment, const std::string& 
 {
     // Save score to DB
     db.insertData(assignment, username, points, time);
-    db.selectData(assignment);
 }
 
 inline void Tester::Delete(const std::string& deletePath) const
