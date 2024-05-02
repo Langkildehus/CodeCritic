@@ -59,17 +59,31 @@ void Tester::RunTest(const Cookie& cookies, const SOCKET connection)
 // ---------- PRIVATE ----------
 
 void Tester::StartTest(const std::string assignment, const std::string username,
-    const std::string lanugage, const SOCKET connection)
+    const std::string language, const SOCKET connection)
 {
     // Wait for mutex lock
     std::lock_guard<std::mutex> lockGuard(runMtx);
     
     const std::string path = "website\\opgaver\\" + assignment + "\\";
     const std::string sJudgePath = path + "judge.exe";
-    const std::string cppPath = path + username + ".cpp";
+    std::string sourceFile = path + username;
+
+    if (language == "C++")
+    {
+        sourceFile += ".cpp";
+    }
+    else if (language == "C#")
+    {
+        sourceFile += ".cs";
+    }
+    else
+    {
+        std::cout << "Not a supported language\n";
+        return;
+    }
 
     // Compile submission
-    const std::string compilePath = Compile(path + username + ".cpp");
+    const std::string compilePath = Compile(sourceFile, language);
 
     // Convert file paths to LPCWSTR
     const std::wstring wTestPathName = std::wstring(compilePath.begin(), compilePath.end());
@@ -156,21 +170,38 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     // Save test result in DB
     SaveScore(assignment, username, points, time);
 
-    //const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
-    //send(connection, response.c_str(), response.size(), 0);
+    // Create response header and body
+    const std::string body = "{\"points\": " + std::to_string(points)
+        + ", \"maxpoints\": " + std::to_string(testCases.size())
+        + ", \"time\": " + std::to_string(time) + '}';
+    const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: "
+        + std::to_string(body.size()) + "\r\n\r\n";
+
+    // Send response header and body
+    send(connection, response.c_str(), response.size(), 0);
+    send(connection, body.c_str(), body.size(), 0);
+    closesocket(connection);
 
     // Remove compiled file after all tests
     Delete(compilePath);
-    Delete(cppPath);
+    Delete(sourceFile);
 }
 
-inline std::string Tester::Compile(const std::string& path) const
+inline std::string Tester::Compile(const std::string& path, const std::string& language) const
 {
     // change filepath .cpp to .exe for output file
     const std::string compilePath = path.substr(0, path.size() - 4) + ".exe";
+    std::string cmd;
 
     // Compile file on given path
-    const std::string cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + " " + path;
+    if (language == "C++")
+    {
+        cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + " " + path;
+    }
+    else if (language == "C#")
+    {
+        cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + " " + path;
+    }
     std::system(cmd.c_str());
 
     return compilePath;

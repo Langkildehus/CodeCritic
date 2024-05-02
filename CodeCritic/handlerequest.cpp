@@ -124,6 +124,7 @@ void HandleGET(const SOCKET connection, const std::string& url, const Cookie& co
 
 		// Send response body
 		send(connection, data.c_str(), data.size(), 0);
+		closesocket(connection);
 		return;
 	}
 	else if (url == "/leaderboard")
@@ -139,6 +140,7 @@ void HandleGET(const SOCKET connection, const std::string& url, const Cookie& co
 
 		// Send response body
 		send(connection, data.c_str(), data.size(), 0);
+		closesocket(connection);
 		return;
 	}
 
@@ -194,6 +196,7 @@ void HandleGET(const SOCKET connection, const std::string& url, const Cookie& co
 
 	// Close filestream
 	file.close();
+	closesocket(connection);
 }
 
 void ParseLoginJson(const std::string& msg, std::string& username, std::string& password)
@@ -261,6 +264,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 			std::cout << "Ignoring submission! Insufficient cookies.\n";
 			const std::string response = "HTTP/1.1 418 I'm a teapot\r\n\r\n";
 			send(connection, response.c_str(), response.size(), 0);
+			closesocket(connection);
 			return;
 		}
 
@@ -275,8 +279,8 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		std::string sourceCode = msg.substr(codeIndexStart + 1, codeIndexEnd - codeIndexStart - 1);
 
 		// Send header for response
-		const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
-		send(connection, response.c_str(), response.size(), 0);
+		/*const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
+		send(connection, response.c_str(), response.size(), 0);*/
 
 		std::ofstream sourceFile("website/opgaver/" + cookies.assignment + '/' + cookies.username + ".cpp");
 
@@ -327,13 +331,16 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		sourceFile << sourceCode;
 		sourceFile.close();
 		tester->RunTest(cookies, connection);
+		return;
 	}
 	else
 	{
 		std::cout << "POST request could not be handled!\n";
 		const std::string response = "HTTP/1.1 404 Not Found\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
+		closesocket(connection);
 	}
+	closesocket(connection);
 }
 
 void HandleRequest(const SOCKET connection, Tester* tester)
@@ -504,7 +511,9 @@ void HandleRequest(const SOCKET connection, Tester* tester)
 
 		HandlePOST(connection, body, url, cookies, tester);
 	}
-
-	// Ignore everything else
-	closesocket(connection);
+	else
+	{
+		// Ignore everything else
+		closesocket(connection);
+	}
 }

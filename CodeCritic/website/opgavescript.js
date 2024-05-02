@@ -10,14 +10,17 @@ function submission() {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "http://127.0.0.1/submit");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.responseType = "json";
     const body = JSON.stringify({
         assignment: "",
         code: document.getElementById("kildekode").value,
     });
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 201) {
-            console.log("Accepted");
+            console.log(xhr.response);
             document.getElementById("notLoggedIn").innerHTML = "";
+            modal(1);
+            resultModal(xhr.response);
         } else if (xhr.readyState == 4 && xhr.status == 418) {
             document.getElementById("notLoggedIn").innerHTML = "Please Login to submit";
         } else {
@@ -60,4 +63,35 @@ function addLine(pos, name, score, time) {
     }
     // Add line
     document.getElementById("table").innerHTML += `<tr style="background-color: ${background};" ><td>${pos}</td><td>${name}</td><td>${score}</td><td>${time}</td></tr>`;
+}
+
+// Dropdown
+function dropDown() {
+    document.getElementById("dropdownContent").classList.toggle("show");
+}
+
+// Cookies
+function setCookie(cookieName, cookieValue, cookieExp) {
+    console.log("hej");
+    const date = new Date();
+    date.setTime(date.getTime() + cookieExp * 1000 * 60 * 60 * 24);
+    let expires = "expires="+date.toUTCString();
+    document.cookie = cookieName + "=" + cookieValue + ";" + expires + ";path=/" 
+}
+
+/* Modal open */
+function modal(i) {
+    document.getElementById(`modal${i}`).style.display = "block";
+}
+
+/* Modal close */
+function modalClose(i) {
+    document.getElementById(`modal${i}`).style.display = "none";
+    document.getElementById("points").innerHTML = "";
+    document.getElementById("time").innerHTML = "";
+}
+
+function resultModal(data) {
+    document.getElementById("points").innerHTML += data.points + "/" + data.maxpoints;
+    document.getElementById("time").innerHTML += data.time + "ms";
 }
