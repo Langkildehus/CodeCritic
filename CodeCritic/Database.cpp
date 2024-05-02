@@ -1,20 +1,6 @@
 #include "pch.h"
 #include "database.h"
 
-// retrieve contents of database used by selectData()
-/* argc: holds the number of results, argv: holds each value in array, azColName: holds each column returned in array, */
-static int callback(void* NotUsed, int argc, char** argv, char** azColName)
-{
-	for (int i = 0; i < argc; i++) {
-		// column name and value
-		std::cout << azColName[i] << ": " << argv[i] << "\n";
-	}
-
-	std::cout << "\n";
-
-	return 0;
-}
-
 Database::Database()
 {
 	int exit = sqlite3_open(R"(Database.db)", &DB);
@@ -62,8 +48,8 @@ int Database::createAssignment(const std::string& tName)
 
 int Database::insertData(const std::string& tName, const std::string& username, const int Points, const ull time)
 {
+	sqlite3_stmt* stmt;
 	char* messageError;
-	int ID;
 	std::string sql = "INSERT INTO " + tName + " (Username, Points, Time) VALUES('" + username + "', '" + std::to_string(Points) + "', '" + std::to_string(time) + "');";
 	
 	int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
@@ -71,16 +57,36 @@ int Database::insertData(const std::string& tName, const std::string& username, 
 		std::cerr << "Error in insertData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
 		
-		std::string sql("UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "', Time = '" + std::to_string(time) + "' WHERE Username = '" + username + "';");
+		sql = "SELECT Points, Time FROM " + tName + " Where Username is '" + username + "' ;";
+		exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
 
-		int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
-		if (exit != SQLITE_OK) 
+		if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
 		{
-			std::cerr << "Error in updateData function." << "\n" << messageError << "\n";
-			sqlite3_free(messageError);
+			std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
+			return 0;
 		}
-		else
-			std::cout << "Records updated Successfully!" << "\n";
+		std::stringstream tempPoints, tempTime;
+		int DBpoints, DBtime;
+		tempPoints << sqlite3_column_text(stmt, 0);
+		tempPoints >> DBpoints;
+		tempTime << sqlite3_column_text(stmt, 1);
+		tempTime >> DBtime;
+		std::cout << DBpoints << "\n" << DBtime << "\n";
+		if (DBpoints < Points || (DBpoints == Points && DBtime > time))
+		{
+			sql = "UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "', Time = '" + std::to_string(time) + "' WHERE Username = '" + username + "';";
+
+			int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+			if (exit != SQLITE_OK)
+			{
+				std::cerr << "Error in updateData function." << "\n" << messageError << "\n";
+				sqlite3_free(messageError);
+			}
+			else
+				std::cout << "Records updated Successfully!" << "\n";
+			return 0;
+		}
+		std::cout << "updata not needed" << "\n";
 		return 0;
 	}
 	else
@@ -129,30 +135,10 @@ bool Database::checkLogin(const std::string& username, const std::string& Passwo
 	return false;
 }
 
-int Database::selectData(const std::string& tName)
-{
-	char* messageError;
-
-	std::string sql = "SELECT * FROM " + tName;
-
-	/* An open database, SQL to be evaluated, Callback function, 1st argument to callback, Error msg written here*/
-	int exit = sqlite3_exec(DB, sql.c_str(), callback, NULL, &messageError);
-
-	if (exit != SQLITE_OK) {
-		std::cerr << "Error in selectData function." << "\n" << messageError << "\n";
-		sqlite3_free(messageError);
-	}
-	else
-		std::cout << "Records selected Successfully!" << "\n";
-
-	return 0;
-}
-
 std::string Database::Assigmentleaderboard(const std::string tName) 
 {
 	sqlite3_stmt* stmt;
 	std::string sql = "SELECT Username, Points, Time FROM " + tName + " ORDER BY Points DESC, Time ASC;";
-	std::vector<std::string> Leaderboard;
 	std::string str = "[";
 	int exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
 
