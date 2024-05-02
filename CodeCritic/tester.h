@@ -29,8 +29,8 @@ public:
     void RunTest(const Cookie& cookies, const SOCKET connection);
 
 private:
-    void StartTest(const std::string task, const std::string name, const std::string lanugage, const SOCKET connection);
-    inline std::string Compile(const std::string& path) const;
+    void StartTest(const std::string task, const std::string name, const std::string language, const SOCKET connection);
+    inline std::string Compile(const std::string& path, const std::string& language) const;
     inline void SaveScore(const std::string& task, const std::string& name, const int points, const ull time) const;
     inline void Delete(const std::string& compiledPath) const;
 
