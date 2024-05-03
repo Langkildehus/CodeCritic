@@ -217,7 +217,7 @@ inline std::string Tester::Compile(const std::string& path, const std::string& l
     // Compile file on given path
     if (language == "C++")
     {
-        cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + ' ' + path;
+        cmd = "..\\MinGW\\bin\\g++ --std=c++17 -O3 -mavx2 -o " + compilePath + ' ' + path;
     }
     else if (language == "C#")
     {
