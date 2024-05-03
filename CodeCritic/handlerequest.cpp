@@ -126,10 +126,15 @@ void CreateAssignment(const SOCKET connection, const std::string& msg)
 	}
 
 	// Verify timelimit
+	if (!std::isdigit(parameters[6][0]))
+	{
+		RespondWithError(connection, "Timelimit is not an int");
+		return;
+	}
 	const int timeLimit = std::stoi(parameters[6]);
 	if (timeLimit < 0 || timeLimit > 10000)
 	{
-		RespondWithError(connection, "Timelimit not allowed");
+		RespondWithError(connection, "Given timelimit not allowed");
 		return;
 	}
 

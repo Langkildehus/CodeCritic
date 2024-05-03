@@ -10,6 +10,7 @@ typedef unsigned long long ull;
 #include <fstream>
 #include <utility>
 #include <cstdio>
+#include <cctype>
 #include <stdlib.h>
 #include <filesystem>
 #include <chrono>
