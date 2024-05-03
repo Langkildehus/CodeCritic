@@ -8,6 +8,174 @@
 
 extern Database db;
 
+void HandleEscapedCharacters(std::string& str)
+{
+	// Transform escpaed characters e.g. \n => newline
+	bool start = false;
+	for (int c = 0; c < str.size(); c++)
+	{
+		if (str[c] != '\\' && !start)
+		{
+			continue;
+		}
+
+		if (!start)
+		{
+			start = true;
+			continue;
+		}
+
+		switch (str[c])
+		{
+		case '\\':
+			str.erase(c, 1);
+			break;
+		case 'n':
+			str[c - 1] = '\n';
+			str.erase(c, 1);
+			break;
+		case 'r':
+			str[c - 1] = '\r';
+			str.erase(c, 1);
+			break;
+		case 't':
+			str[c - 1] = '\t';
+			str.erase(c, 1);
+			break;
+		case '"':
+			str.erase(c - 1, 1);
+			break;
+		default:
+			std::cout << "Escaped character not found: " << str[c] << "\n";
+			std::cout << "IN:\n" << str << "\n";
+			str.erase(c - 1, 1);
+			break;
+		}
+		c--;
+		start = false;
+	}
+}
+
+void RespondWithError(const SOCKET connection, const std::string& errormsg)
+{
+	std::cout << errormsg << '\n';
+	const std::string response = "HTTP/1.1 400 Bad request. " + errormsg + "\r\n\r\n";
+	send(connection, response.c_str(), response.size(), 0);
+	closesocket(connection);
+	return;
+}
+
+void CreateAssignment(const SOCKET connection, const std::string& msg)
+{
+	const std::string parameterNames[10] = { "\"name\"", "\"description\"", "\"input\"", "\"output\"",
+		"\"exInput\"", "\"exOutput\"", "\"time\"", "\"constraint\"", "\"tests\"", "\"judge\"" };
+	const std::string customVars[7] = { "--Title--", "--Description--", "--Input--", "--Output--",
+		"--ExampleInput--", "--ExampleOutput--", "--Constraints--" };
+
+	std::string parameters[10]{};
+
+	// Parse from json to c++ strings
+	for (int c = 0; c < 10; c++)
+	{
+		const size_t startPos = msg.find('"', msg.find(parameterNames[c]) + parameterNames[c].size()) + 1;
+		size_t endPos = msg.find('"', startPos);
+		while (msg[endPos - 1] == '\\')
+		{
+			endPos = msg.find('"', endPos + 1);
+		}
+
+		parameters[c] = msg.substr(startPos, endPos - startPos);
+
+		HandleEscapedCharacters(parameters[c]);
+	}
+
+	// Make sure name doesn't have _ in it
+	std::string& assignment = parameters[0];
+	if (assignment.find('_') != std::string::npos)
+	{
+		RespondWithError(connection, "Assignment name can't contain '_'");
+		return;
+	}
+
+	// Convert spaces to _
+	size_t pos = assignment.find(' ');
+	while (pos != std::string::npos)
+	{
+		assignment[pos] = '_';
+		pos = assignment.find(' ');
+	}
+
+	// Check if assignment already exists
+	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator("website/opgaver"))
+	{
+		// Only look for directories
+		if (!entry.is_directory())
+		{
+			continue;
+		}
+
+		// Find directory name
+		const std::string dir = entry.path().string();
+		const size_t folderIndex = dir.find_last_of("\\");
+		const std::string existingAssignment = dir.substr(folderIndex + 1);
+		if (existingAssignment == assignment)
+		{
+			RespondWithError(connection, "Assignment name alread exists");
+			return;
+		}
+	}
+
+	// Verify timelimit
+	const int timeLimit = std::stoi(parameters[6]);
+	if (timeLimit < 0 || timeLimit > 10000)
+	{
+		RespondWithError(connection, "Timelimit not allowed");
+		return;
+	}
+
+	// Create directory
+	const std::string dir = "website/opgaver/" + assignment;
+	std::filesystem::create_directory(dir);
+
+	// Files to be created
+	const std::string configPath =		dir + "/config.txt";
+	const std::string descriptionPath =	dir + "/description.txt";
+	const std::string testCasesPath =	dir + "/testcases.txt";
+	const std::string judgePath =		dir + "/judge.";
+
+	// Create files
+	std::ofstream file(configPath);
+	file << timeLimit;
+	file.close();
+
+	file = std::ofstream(descriptionPath);
+	file << customVars[0] << '\n';
+	for (int c = 1; c < 7; c++)
+	{
+		file << parameters[c - 1];
+		file << '\n' << customVars[c - 1] << '\n' << customVars[c] << '\n';
+	}
+	file << parameters[7];
+	file << "\nTime: " << timeLimit << " milliseconds\n";
+	file << customVars[6] << '\n';
+	file.close();
+
+	file = std::ofstream(testCasesPath);
+	file << parameters[8];
+	file.close();
+
+	file = std::ofstream(judgePath + "cpp");
+	file << parameters[9];
+	file.close();
+
+	// Compile judge
+	const std::string cmd = "g++.exe --std=c++17 -O3 -mavx2 " + judgePath + "cpp -o " + judgePath + "exe";
+	std::system(cmd.c_str());
+
+	// Create table for the new assignment
+	db.createAssignment(assignment);
+}
+
 bool FindTaskName(std::string& path, std::string& name)
 {
 	// Look for "opgaver" in path
@@ -296,10 +464,6 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		}
 		std::string sourceCode = msg.substr(codeIndexStart + 1, codeIndexEnd - codeIndexStart - 1);
 
-		// Send header for response
-		/*const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
-		send(connection, response.c_str(), response.size(), 0);*/
-
 		std::string sourceFilePath = "website/opgaver/" + cookies.assignment + '/' + cookies.username;
 		if (cookies.language == "C++")
 		{
@@ -318,54 +482,16 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		}
 		std::ofstream sourceFile(sourceFilePath);
 
-		bool start = false;
-		for (int c = 0; c < sourceCode.size(); c++)
-		{
-			if (sourceCode[c] != '\\' && !start)
-			{
-				continue;
-			}
-
-			if (!start)
-			{
-				start = true;
-				continue;
-			}
-
-			switch (sourceCode[c])
-			{
-			case '\\':
-				sourceCode.erase(c, 1);
-				break;
-			case 'n':
-				sourceCode[c - 1] = '\n';
-				sourceCode.erase(c, 1);
-				break;
-			case 'r':
-				sourceCode[c - 1] = '\r';
-				sourceCode.erase(c, 1);
-				break;
-			case 't':
-				sourceCode[c - 1] = '\t';
-				sourceCode.erase(c, 1);
-				break;
-			case '"':
-				sourceCode.erase(c - 1, 1);
-				break;
-			default:
-				std::cout << "Escaped character not found: " << sourceCode[c] << "\n";
-				std::cout << "IN:\n" << sourceCode << "\n";
-				sourceCode.erase(c - 1, 1);
-				break;
-			}
-			c--;
-			start = false;
-		}
+		HandleEscapedCharacters(sourceCode);
 
 		sourceFile << sourceCode;
 		sourceFile.close();
 		tester->RunTest(cookies, connection);
 		return;
+	}
+	else if (url == "/newassignment")
+	{
+		CreateAssignment(connection, msg);
 	}
 	else
 	{

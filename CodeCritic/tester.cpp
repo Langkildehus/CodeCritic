@@ -221,7 +221,7 @@ inline std::string Tester::Compile(const std::string& path, const std::string& l
     }
     else if (language == "C#")
     {
-        cmd = "C:\\Windows\\Microsoft.NET\\Framework\\v3.5\\csc.exe /t:exe /out:" + compilePath + ' ' + path;
+        cmd = "C:\\Windows\\Microsoft.NET\\Framework\\v3.5\\csc.exe /optimize /t:exe /out:" + compilePath + ' ' + path;
     }
     std::system(cmd.c_str());
 
@@ -391,7 +391,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
 
     {
         // Give time for CreateProcess to finish starting the process
-        std::this_thread::sleep_for(10ms);
+        std::this_thread::sleep_for(100ms);
     }
 
     WriteThreadData judgeWriteData{ judgeStdInWrite };

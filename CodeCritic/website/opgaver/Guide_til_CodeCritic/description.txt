@@ -1,0 +1,79 @@
+--Title--
+Guide_til_CodeCritic
+--Title--
+--Description--
+Guide til CodeCritic
+Denne opgave er til for at vise, hvordan man løser opgaver på CodeCritic.
+I denne opgave skal man tage et tal som input, og outputte tallet + 1.
+
+Man skal starte med at vælge sit programmeringssprog, som vælges i en dropdown lige over tekstboksen til ens kode.
+Når man skal til at tage input, afhænger metoden af ens programmeringssprog. I denne opgave vises et eksempel for både C++ og C#.
+
+<h3>C++</h3>For at tage input og output i C++, bruges et bibliotek kaldet iostream. Så filen kan starte med at se sådan ud:
+
+<code><div>#include &#60;iostream&#62;
+
+int main()
+{
+
+}
+</div></code>
+I C++ tager <code>std::cin</code> en variabel som input ad gangen. Det kan bruges til at tage tallet ind som input.
+Dette gøres ved først at deklarere en variabel, som i vores tilfælde er en tal - altså en int.
+<code><div>int n;</div></code>
+Nu kan vi bruge <code>std::cin</code> til at gemme tallet i vores nye variabel, n. Dette gøres med &#62;&#62;
+Man skal være opmærksom på, at det kun tager et tal ad gangen som input, ikke hele linjen.
+Så hvis der stod der var to tal på en linje, skal man bruge <code>std::cin</code> to gange for at inputte begge tal
+<code><div>#include &#60;iostream&#62;
+
+int main()
+{
+&nbsp;&nbsp;&nbsp;&nbsp;int n;
+&nbsp;&nbsp;&nbsp;&nbsp;std::cin >> n;
+}
+</div></code>
+Det sidste der skal gøres for at løse opgaven, er at outputte n + 1. For at outputte i C++ bruges std::cout:
+<code><div>#include &#60;iostream&#62;
+
+int main()
+{
+&nbsp;&nbsp;&nbsp;&nbsp;int n;
+&nbsp;&nbsp;&nbsp;&nbsp;std::cin >> n;
+&nbsp;&nbsp;&nbsp;&nbsp;std::cout << n + 1;
+}
+</div></code>
+
+<h3>C#</h3>Ideen er den samme i C#, men her skal man dog tage input og output på en lidt anderledes måde.
+Man skal være opmærksom på beskrivelsen af inputtet til opgaven. I C# tager <code>Console.ReadLine()</code> en hel linje input ad gangen.
+Hvis der derfor er flere tal på samme linje, skal man bruge <code>Console.ReadLine().Split(" ")</code> for at dele linjen op i de tal der er på linjen.
+I stedet for <code>std::cin</code> og <code>std::cout</code> bruges nu <code>Console.ReadLine()</code> og <code>Console.Write</code>:
+<code><div>using System;
+
+class Submission
+{ 
+&nbsp;&nbsp;&nbsp;&nbsp;static public void Main(String[] args)
+&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int n = int.Parse(Console.ReadLine());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Console.Write(n + 1);
+&nbsp;&nbsp;&nbsp;&nbsp;}
+}
+</div></code>
+
+
+--Description--
+--Input--
+1: Tallet n
+--Input--
+--Output--
+1: Det beregnede tal
+--Output--
+--ExampleInput--
+5
+--ExampleInput--
+--ExampleOutput--
+6
+--ExampleOutput--
+--Constraints--
+1 &#8804; n &#8804; 1000
+Time: 100 milliseconds
+--Constraints--
