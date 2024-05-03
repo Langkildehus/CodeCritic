@@ -31,6 +31,7 @@ CodeCritic/Database.db
 *.lib
 
 # Executables
-*.exe
+# *.exe
+judge.exe
 *.out
 *.app
