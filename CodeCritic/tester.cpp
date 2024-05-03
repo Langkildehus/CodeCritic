@@ -119,9 +119,9 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     configFile.close();
 
     // Run test cases
-    int points = 0;
+    std::string status = "Success";
+    int statusCode = 0, points = 0, attempts = 4;
     ull time = 0;
-    int attempts = 4;
     std::cout << "Starting test for " << username << ":\n";
     for (uint c = 0; c < testCases.size(); c++)
     {
@@ -136,6 +136,11 @@ void Tester::StartTest(const std::string assignment, const std::string username,
                 time += res.time;
                 points += res.points;
             }
+            else if (statusCode == 0 || statusCode > 1)
+            {
+                statusCode = 1;
+                status = "Wrong answer";
+            }
             std::cout << "Points: " << res.points << ", Time taken: " << res.time << "\n";
             break;
         case 1:
@@ -149,6 +154,11 @@ void Tester::StartTest(const std::string assignment, const std::string username,
             break;
         case 4:
             std::cout << "Error while starting submission\n";
+            if (statusCode == 0 || statusCode > 4)
+            {
+                statusCode = 4;
+                status = "Compile error";
+            }
             break;
         case 5:
             std::cout << "Timelimit exceeded!\n";
@@ -156,6 +166,14 @@ void Tester::StartTest(const std::string assignment, const std::string username,
             {
                 attempts--;
                 c--;
+            }
+            else
+            {
+                if (statusCode == 0 || statusCode > 5)
+                {
+                    statusCode = 5;
+                    status = "Timelimit exceeded";
+                }
             }
             break;
         case 6:
@@ -175,7 +193,8 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     const std::string body = "{\"points\": " + std::to_string(points)
         + ", \"maxpoints\": " + std::to_string(testCases.size())
         + ", \"time\": " + std::to_string(time)
-        + ", \"language\": \"" + language + "\"}";
+        + ", \"language\": \"" + language
+        + ", \"status\": \"" + status + "\"}";
     const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: "
         + std::to_string(body.size()) + "\r\n\r\n";
 
