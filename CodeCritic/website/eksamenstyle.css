@@ -111,11 +111,26 @@
     width: 20%;
     background-color: white;
 }
+#side {
+    width: 100%;
+}
 
-.sidebar div {
+#side div {
     height: 50px;
     width: 100%;
     margin: auto;
+    text-align: center;
+}
+
+#side div {
+    text-align: center;
+    padding-top:20px;
+    font-size: 20px;
+}
+
+#sidebutton button {
+    border-radius: 5px;
+    border: 1px solid black;
 }
 
 .top button:hover {

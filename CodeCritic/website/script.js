@@ -9,7 +9,7 @@ xhr.onload = () => {
         data = xhr.response;
         /* Add to 'Opgaver' to innerHTML */
         for (let i = 0; i < data.Opgaver.length; i++) {
-            document.getElementById("side").innerHTML += `<div style="text-align: center;padding-top:20px;" onclick="chooseAssignment('${data.Opgaver[i]}')">` + data.Opgaver[i] + `</div><br/><br/>`;
+            document.getElementById("side").innerHTML += `<div onclick="chooseAssignment('${data.Opgaver[i]}')">` + data.Opgaver[i] + `</div><br/><br/>`;
         }
         console.log(data);
     } else {
