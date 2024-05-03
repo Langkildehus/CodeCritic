@@ -193,7 +193,7 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     const std::string body = "{\"points\": " + std::to_string(points)
         + ", \"maxpoints\": " + std::to_string(testCases.size())
         + ", \"time\": " + std::to_string(time)
-        + ", \"language\": \"" + language
+        + ", \"language\": \"" + language + '"'
         + ", \"status\": \"" + status + "\"}";
     const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: "
         + std::to_string(body.size()) + "\r\n\r\n";
