@@ -11,7 +11,7 @@ function submit() {
         exOutput: document.getElementById("assignmentExampleOutput").value,
         time: document.getElementById("assignmentTime").value,
         constraint: document.getElementById("assignmentConstraint").value,
-        tests: document.getElementById("assigmentTestcases").value,
+        tests: document.getElementById("assignmentTestcases").value,
         judge: document.getElementById("assignmentJudge").value,
     });
     xhr.onload = () => {
