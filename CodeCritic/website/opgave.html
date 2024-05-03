@@ -21,6 +21,7 @@
         </div>
 
         <!-- iframe template -->
+        <div class="divider">
         <h1>{{Title}}</h1>
         <p>{{Description}}</p>
 
@@ -37,25 +38,27 @@
 
         <h2>Constraints</h2>
         <code>{{Constraints}}</code>
-
+        </div>
         <!-- Submission button -->
-        
+        <div class="divider">
         <h2>Submit</h2>
         <div class="dropdown" id="dropdown">
-            <button onclick="dropDown()">Language ▼</button>
+            Language: <button id="language" onclick="dropDown()"></button>
             <div id="dropdownContent" class="dropdownContent">
-                <button onclick="setCookie('language','C++',1)">C++</button>
-                <button onclick="setCookie('language','C#',1)">C#</button>
+                <button onclick="setCookie('language','C++',1);updateLanguage()">C++</button>
+                <button onclick="setCookie('language','C#',1);updateLanguage()">C#</button>
             </div>
         </div>
+        <br><br>
         <div class="submit">
             <textarea id="kildekode"></textarea>
             <br>
             <button id="submit" onclick="submission()">Submit</button>
         </div>
         <p id="notLoggedIn" style="color: red;"></p>
-
+        </div>
         <!-- Leaderboard -->
+        <div class="divider">
         <h2>Leaderboard</h2>
         <div class="leaderboard">
             <table id="table">
@@ -64,8 +67,10 @@
                     <th>Name</th>
                     <th>Points</th>
                     <th>Time</th>
+                    <th>Language</th>
                 </tr>
             </table>
         </div>
+    </div>
     </body>
 </html>

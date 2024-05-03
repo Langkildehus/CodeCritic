@@ -1,3 +1,14 @@
+body {
+    background-color: lightgray;
+}
+
+.divider {
+    background-color: white;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px;
+}
+
 #kildekode {
     resize: none;
     width: 100%;
@@ -56,17 +67,24 @@ th, td {
     position: absolute;
     background-color: lightgray;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    padding: 12px 16px;
     z-index: 1;
+    left: 71px;
 }
 
 .show {
     display: block;
 }
 
-button {
-    height: 50px;
+#language {
+    height: 30px;
+    border-radius: 5px;
+    border: solid black 1px;
+    width: 100px;
+}
 
+.dropdownContent button {
+    width: 100px;
+    height: 30px;
 }
 
 .modal {
@@ -104,3 +122,4 @@ button {
 .close button:hover {
     color: #888;
 }
+
