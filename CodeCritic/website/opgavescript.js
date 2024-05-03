@@ -30,6 +30,7 @@ function submission() {
             updateLeaderboard();
         } else if (xhr.readyState == 4 && xhr.status == 418) {
             document.getElementById("notLoggedIn").innerHTML = "Please Login to submit";
+            modalClose(1);
         } else {
           console.log(`Error: ${xhr.status}`);
         }
