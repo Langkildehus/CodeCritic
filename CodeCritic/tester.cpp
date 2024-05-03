@@ -121,7 +121,7 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     // Run test cases
     int points = 0;
     ull time = 0;
-    int attempts = 2;
+    int attempts = 4;
     std::cout << "Starting test for " << username << ":\n";
     for (uint c = 0; c < testCases.size(); c++)
     {
@@ -130,7 +130,7 @@ void Tester::StartTest(const std::string assignment, const std::string username,
         switch (res.status)
         {
         case 0:
-            attempts = 2;
+            attempts = 4;
             if (res.points > 0)
             {
                 time += res.time;
