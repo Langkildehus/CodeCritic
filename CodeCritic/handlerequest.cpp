@@ -509,7 +509,7 @@ void HandleRequest(const SOCKET connection, Tester* tester)
 		pos = url.find("%20", pos);
 	}
 
-	std::cout << type << ':' << url << "\n";
+	std::cout << type << ':' << url << '\n';
 
 	if (type == "GET")
 	{
