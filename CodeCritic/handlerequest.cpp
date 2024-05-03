@@ -134,7 +134,7 @@ void HandleGET(const SOCKET connection, const std::string& url, const Cookie& co
 		data += "]}";
 
 		// Create response header
-		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: "
+		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent-Length: "
 			+ std::to_string(data.size()) + "\r\n\r\n";
 
 		// Send response header
@@ -150,7 +150,7 @@ void HandleGET(const SOCKET connection, const std::string& url, const Cookie& co
 		const std::string data = db.Assigmentleaderboard(cookies.assignment);
 
 		// Create response header
-		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent - Length: "
+		const std::string response = "HTTP/1.1 200 OK\nContent-Type: application/json\nContent-Length: "
 			+ std::to_string(data.size()) + "\r\n\r\n";
 
 		// Send response header
@@ -242,7 +242,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		ParseLoginJson(msg, username, password);
 
 		// Send header for response
-		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
+		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent-Length: 22\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
 
 		// Check if credentials are valid
@@ -262,7 +262,7 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		ParseLoginJson(msg, username, password);
 
 		// Send header for response
-		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: 22\r\n\r\n";
+		const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent-Length: 22\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);
 
 		// Sign user up if username is available and credentials are valid

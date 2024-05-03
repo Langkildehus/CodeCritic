@@ -195,7 +195,7 @@ void Tester::StartTest(const std::string assignment, const std::string username,
         + ", \"time\": " + std::to_string(time)
         + ", \"language\": \"" + language + '"'
         + ", \"status\": \"" + status + "\"}";
-    const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: "
+    const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent-Length: "
         + std::to_string(body.size()) + "\r\n\r\n";
 
     // Send response header and body
