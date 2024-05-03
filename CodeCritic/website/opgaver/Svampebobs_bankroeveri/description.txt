@@ -1,54 +1,29 @@
 --Title--
-Spongebobs bankrobbery
+Svampebobs bankroeveri
 --Title--
 --Description--
-Svampebob planlægger et bankrøveri og har brug for din hjælp. Banken har 
- 
-n bankbokse. I den 
- 
-i-te bankboks er 
- 
- 
-b 
-i
-​
-  kroner. Han har ikke tid til at røve alle bankboksene, faktisk tror han ikke der er tid til at røve mere end én boks. Svampebob tror, at det er for mistænkeligt hvis han bare røver den boks med flest penge i. Han vil altså hellere gå efter den bankboks med næstflest penge i. Hvis Svampebob har success med sin plan, hvor mange penge vil han så få fingrene i?
+Svampebob planlægger et bankrøveri og har brug for din hjælp. Banken har n bankbokse. I den i-te bankboks er der b kroner.
+Han har ikke tid til at røve alle bankboksene, faktisk tror han ikke der er tid til at røve mere end én boks.
+Svampebob tror, at det er for mistænkeligt hvis han bare røver den boks med flest penge i. Han vil altså hellere gå efter den bankboks med næstflest penge i.
+Hvis Svampebob har success med sin plan, hvor mange penge vil han så få fingrene i?
 --Description--
 --Input--
-Input
-Den første linje indeholder ét heltal, 
- 
-n, antallet af bankbokse.
-
-Den næste linje indeholder 
- 
-n heltal, 
- 
-1
-,
- 
-2
-,
-…
-,
- 
- 
-b 
-1
-​
- ,b 
-2
-​
- ,…,b 
-n
-​
- .
+1: Tallet n
+2: N hele tal, b1, b2 ... bn
 --Input--
 --Output--
-Output
 Outputtet skal bestå af ét tal, nemlig mængden af pænge Svampebob røver.
 --Output--
+--ExampleInput--
+4
+4 2 3 1
+--ExampleInput--
+--ExampleOutput--
+3
+--ExampleOutput--
 --Constraints--
-1 &#8804; n &#8804; 1000
+2 &#8804; n &#8804; 100000
+1 &#8804; b &#8804; 1000000000
+Ingen to bankbokse indeholder samme mængde penge.
 Time: 1000 milliseconds
 --Constraints--

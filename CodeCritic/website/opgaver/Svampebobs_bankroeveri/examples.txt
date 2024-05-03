@@ -1,8 +1,0 @@
-Eksempel
-Input
-4
-4 2 3 1
-Output
-3
-Forklaring
-Det er for mistænkeligt at røve den første bankboks med 4 kroner i, så Svampebob skal gå efter den tredje boks med 3 kroner i.
