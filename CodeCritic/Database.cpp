@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "database.h"
 
+//the database constructor
 Database::Database()
 {
 	//opens the database so it can be accessed
@@ -14,6 +15,7 @@ Database::Database()
 	exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, NULL);
 }
 
+//the database destructor
 Database::~Database()
 {
 	//closes the database
@@ -58,10 +60,12 @@ int Database::insertData(const std::string& tName, const std::string& username, 
 	std::string sql = "INSERT INTO " + tName + " (Username, Points, Time, Language) VALUES('" + username + "', '" + std::to_string(Points) + "', '" + std::to_string(time) + "', '" + language + "'); ";
 	
 	int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+
+	//if the user already has a scores in the database then try and update it
 	if (exit != SQLITE_OK) {
 		std::cerr << "Error in insertData function." << "\n" << messageError << "\n";
 		sqlite3_free(messageError);
-		
+		//get the previous score and time to check if the new is better
 		sql = "SELECT Points, Time FROM " + tName + " Where Username is '" + username + "' ;";
 		exit = sqlite3_prepare_v2(DB, sql.c_str(), -1, &stmt, NULL);
 
@@ -70,6 +74,7 @@ int Database::insertData(const std::string& tName, const std::string& username, 
 			std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
 			return 0;
 		}
+
 		std::stringstream tempPoints, tempTime;
 		int DBpoints, DBtime;
 		tempPoints << sqlite3_column_text(stmt, 0);
@@ -77,25 +82,30 @@ int Database::insertData(const std::string& tName, const std::string& username, 
 		tempTime << sqlite3_column_text(stmt, 1);
 		tempTime >> DBtime;
 		std::cout << DBpoints << "\n" << DBtime << "\n";
+
+		//check if the new score is better or the new score is the same and the time is better 
 		if (DBpoints < Points || (DBpoints == Points && DBtime > time))
 		{
+			//then update the saved score
 			sql = "UPDATE " + tName + " SET Points = '" + std::to_string(Points) + "', Time = '" + std::to_string(time) + "', Language = '" + language + "' WHERE Username = '" + username + "'; ";
 
 			int exit = sqlite3_exec(DB, sql.c_str(), NULL, 0, &messageError);
+
 			if (exit != SQLITE_OK)
 			{
-				std::cerr << "Error in updateData function." << "\n" << messageError << "\n";
+				std::cerr << "Error in updateData." << "\n" << messageError << "\n";
 				sqlite3_free(messageError);
 			}
 			else
-				std::cout << "Records updated Successfully!" << "\n";
+				std::cout << "Records updated." << "\n";
 			return 0;
 		}
+		//if the new score is worse then the previous the do not update the saved score
 		std::cout << "The records do not need to be updated" << "\n";
 		return 0;
 	}
 	else
-		std::cout << "Records inserted Successfully!" << "\n";
+		std::cout << "Records inserted." << "\n";
 		return 0;
 }
 
