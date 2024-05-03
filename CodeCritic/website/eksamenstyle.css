@@ -69,7 +69,7 @@
 }
 
 .body {
-    height: 94%
+    height: 93%
 }
 
 .top {
@@ -125,7 +125,7 @@
 
 .content {
     display: block;
-    background-color: aquamarine;
+    background-color: lightgray;
     height: 100%;
     width: 80%;
 }
@@ -147,6 +147,7 @@ textarea {
 #side {
     height: 95%;
 }
+
 
 #sidebutton {
     height: 5%;

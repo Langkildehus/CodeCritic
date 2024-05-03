@@ -1,6 +1,7 @@
 // Update leaderboard on iframe load
 window.addEventListener("load", () => {
-    updateLeaderboard()
+    updateLeaderboard();
+    updateLanguage();
 })
 
 // POST submission to server
@@ -45,7 +46,7 @@ function updateLeaderboard() {
             data = xhr.response;
             for (let i = 0; i < data.length; i++) {
                 // Add line to leaderboard using JSON response
-                addLine(i+1, data[i].name, data[i].points, data[i].time);
+                addLine(i+1, data[i].name, data[i].points, data[i].time, data[i].language);
             }
         } else {
             console.log("Leaderboard request failed");
@@ -54,7 +55,7 @@ function updateLeaderboard() {
 }
 
 // Add line to leaderboard
-function addLine(pos, name, score, time) {
+function addLine(pos, name, score, time, language) {
     // Style table color
     if (pos % 2 == 0) {
         var background = "lightgrey";
@@ -62,7 +63,7 @@ function addLine(pos, name, score, time) {
         var background = "white";
     }
     // Add line
-    document.getElementById("table").innerHTML += `<tr style="background-color: ${background};" ><td>${pos}</td><td>${name}</td><td>${score}</td><td>${time}</td></tr>`;
+    document.getElementById("table").innerHTML += `<tr style="background-color: ${background};" ><td>${pos}</td><td>${name}</td><td>${score}</td><td>${time}</td><td>${language}</td></tr>`;
 }
 
 // Dropdown
@@ -77,6 +78,21 @@ function setCookie(cookieName, cookieValue, cookieExp) {
     date.setTime(date.getTime() + cookieExp * 1000 * 60 * 60 * 24);
     let expires = "expires="+date.toUTCString();
     document.cookie = cookieName + "=" + cookieValue + ";" + expires + ";path=/" 
+}
+
+function checkCookie(cookieName) {
+    let name = cookieName + "=";
+    let ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
 }
 
 /* Modal open */
@@ -94,4 +110,12 @@ function modalClose(i) {
 function resultModal(data) {
     document.getElementById("points").innerHTML += data.points + "/" + data.maxpoints;
     document.getElementById("time").innerHTML += data.time + "ms";
+}
+
+function updateLanguage() {
+    if (checkCookie("language") != "") {
+        document.getElementById("language").innerHTML = checkCookie("language") + " ▼";
+    } else {
+        document.getElementById("language").innerHTML = "Language ▼";
+    }
 }
