@@ -16,7 +16,9 @@ void SetupAssignments()
 	{
 		// Only look for directories
 		if (!entry.is_directory())
+		{
 			continue;
+		}
 
 		// Find directory name
 		const std::string dir = entry.path().string();
@@ -27,7 +29,7 @@ void SetupAssignments()
 		db.createAssignment(assignment);
 
 		const std::string compilePath = path + assignment + "\\judge.";
-		const std::string cmd = "g++ --std=c++17 -O3 -mavx2 " + compilePath + "cpp -o " + compilePath + "exe";
+		const std::string cmd = "..\\MinGW\\bin\\g++.exe --std=c++17 -O3 -mavx2 " + compilePath + "cpp -o " + compilePath + "exe";
 		std::system(cmd.c_str());
 	}
 }
