@@ -275,7 +275,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
         res.status = 1;
         return res;
     }
-    // read handle to stdout should not be inherited
+    // Read handle to stdout should not be inherited
     if (!SetHandleInformation(judgeStdOutRead, HANDLE_FLAG_INHERIT, 0))
     {
         res.status = 1;
@@ -288,7 +288,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
         res.status = 1;
         return res;
     }
-    // read handle to stdin should not be inherited
+    // Read handle to stdin should not be inherited
     if (!SetHandleInformation(judgeStdInWrite, HANDLE_FLAG_INHERIT, 0))
     {
         res.status = 1;
@@ -302,7 +302,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
         res.status = 2;
         return res;
     }
-    // read handle to stdout should not be inherited
+    // Read handle to stdout should not be inherited
     if (!SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0))
     {
         res.status = 2;
@@ -315,7 +315,7 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
         res.status = 2;
         return res;
     }
-    // read handle to stdin should not be inherited
+    // Read handle to stdin should not be inherited
     if (!SetHandleInformation(childStdInWrite, HANDLE_FLAG_INHERIT, 0))
     {
         res.status = 2;

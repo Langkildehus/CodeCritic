@@ -50,5 +50,5 @@ Outputtet skal bestå af ét tal, nemlig mængden af pænge Svampebob røver.
 --Output--
 --Constraints--
 1 &#8804; n &#8804; 1000
-Time: 1 second
+Time: 1000 milliseconds
 --Constraints--
