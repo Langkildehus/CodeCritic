@@ -169,12 +169,13 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     std::cout << "Score: " << points << '/' << testCases.size() << ", Time taken: " << time << "\n";
 
     // Save test result in DB
-    SaveScore(assignment, username, points, time);
+    SaveScore(assignment, username, points, time, language);
 
     // Create response header and body
     const std::string body = "{\"points\": " + std::to_string(points)
         + ", \"maxpoints\": " + std::to_string(testCases.size())
-        + ", \"time\": " + std::to_string(time) + '}';
+        + ", \"time\": " + std::to_string(time)
+        + ", \"language\": " + language + '}';
     const std::string response = "HTTP/1.1 201 OK\nContent-Type: application/json\nContent - Length: "
         + std::to_string(body.size()) + "\r\n\r\n";
 
@@ -209,10 +210,10 @@ inline std::string Tester::Compile(const std::string& path, const std::string& l
 }
 
 inline void Tester::SaveScore(const std::string& assignment, const std::string& username,
-    const int points, const ull time) const
+    const int points, const ull time, const std::string& language) const
 {
     // Save score to DB
-    db.insertData(assignment, username, points, time);
+    db.insertData(assignment, username, points, time, language);
 }
 
 inline void Tester::Delete(const std::string& deletePath) const

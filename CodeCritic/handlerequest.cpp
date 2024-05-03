@@ -10,7 +10,6 @@ extern Database db;
 
 bool FindTaskName(std::string& path, std::string& name)
 {
-
 	// Look for "opgaver" in path
 	const size_t index = path.find("opgaver");
 	if (index == std::string::npos || index + 8 > path.size())
@@ -461,6 +460,13 @@ void HandleRequest(const SOCKET connection, Tester* tester)
 					assignmentEndIndex = cookie.size() - 1;
 				}
 				cookies.assignment = cookie.substr(assignmentIndex, assignmentEndIndex - assignmentIndex);
+
+				size_t pos = cookies.assignment.find(' ');
+				while (pos != std::string::npos)
+				{
+					cookies.assignment[pos] = '_';
+					pos = cookies.assignment.find(' ', pos);
+				}
 			}
 
 			size_t languageIndex = cookie.find("language=");
