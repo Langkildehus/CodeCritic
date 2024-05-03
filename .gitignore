@@ -8,7 +8,7 @@ CodeCritic/Database.db
 # Compiled Object files
 *.slo
 *.lo
-*.o
+# *.o
 *.obj
 
 # Precompiled Headers
@@ -26,9 +26,9 @@ CodeCritic/Database.db
 
 # Compiled Static libraries
 *.lai
-*.la
-*.a
-*.lib
+# *.la
+# *.a
+# *.lib
 
 # Executables
 # *.exe
