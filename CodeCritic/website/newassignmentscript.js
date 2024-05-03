@@ -11,6 +11,7 @@ function submit() {
         exOutput: document.getElementById("assignmentExampleOutput").value,
         time: document.getElementById("assignmentTime").value,
         constraint: document.getElementById("assignmentConstraint").value,
+        tests: document.getElementById("assigmentTestcases").value,
         judge: document.getElementById("assignmentJudge").value,
     });
     xhr.onload = () => {
@@ -23,6 +24,7 @@ function submit() {
           document.getElementById("assignmentExampleOutput").value = "";
           document.getElementById("assigmentTime").value = "";
           document.getElementById("assignmentConstraint").value = "";
+          document.getElementById("assignmentTestcases").value = "";
           document.getElementById("assignmentJudge").value = "";
         } else {
           console.log(`Error: ${xhr.status}`);

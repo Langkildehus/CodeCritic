@@ -4,6 +4,16 @@ window.addEventListener("load", () => {
     updateLanguage();
 })
 
+window.onclick = function (event) {
+    if (!event.target.matches('#language') && document.getElementById("dropdownContent").classList.contains("show")) {
+        document.getElementById("dropdownContent").classList.toggle("show");
+    }
+    if (event.target.matches('.modal') && document.getElementById("modal1").style.display == "block") {
+        console.log("lukker");
+        modalClose(1);
+    }
+}
+
 // POST submission to server
 function submission() {
     if (document.getElementById("kildekode").value == "") {

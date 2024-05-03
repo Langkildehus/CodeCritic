@@ -21,6 +21,13 @@ window.addEventListener("load", () => {
     checkAssignmentCookie();
 })
 
+window.onclick = function(event) {
+    if (event.target.matches(".modal") && (document.getElementById("modal1").style.display == "block" || document.getElementById("modal2").style.display == "block")) {
+        modalClose(1);  
+        modalClose(2);
+    }
+}
+
 /* Modal open */
 function modal(i) {
     document.getElementById(`modal${i}`).style.display = "block";
