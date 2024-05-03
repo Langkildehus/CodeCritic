@@ -1,5 +1,5 @@
 --Title--
-Guide_til_CodeCritic
+Guide til CodeCritic
 --Title--
 --Description--
 Guide til CodeCritic

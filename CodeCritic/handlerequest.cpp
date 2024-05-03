@@ -90,7 +90,7 @@ void CreateAssignment(const SOCKET connection, const std::string& msg)
 	}
 
 	// Make sure name doesn't have _ in it
-	std::string& assignment = parameters[0];
+	std::string assignment = parameters[0];
 	if (assignment.find('_') != std::string::npos)
 	{
 		RespondWithError(connection, "Assignment name can't contain '_'");
