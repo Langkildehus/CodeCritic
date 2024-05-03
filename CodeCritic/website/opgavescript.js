@@ -6,6 +6,11 @@ window.addEventListener("load", () => {
 
 // POST submission to server
 function submission() {
+    if (document.getElementById("kildekode").value == "") {
+        console.log("emoty");
+        return;
+    }
+    modal(1);
     console.log(document.getElementById("kildekode").value);
     // POST request
     const xhr = new XMLHttpRequest();
@@ -17,11 +22,12 @@ function submission() {
         code: document.getElementById("kildekode").value,
     });
     xhr.onload = () => {
+        console.log("jeg er lige her");
         if (xhr.readyState == 4 && xhr.status == 201) {
             console.log(xhr.response);
             document.getElementById("notLoggedIn").innerHTML = "";
-            modal(1);
             resultModal(xhr.response);
+            updateLeaderboard();
         } else if (xhr.readyState == 4 && xhr.status == 418) {
             document.getElementById("notLoggedIn").innerHTML = "Please Login to submit";
         } else {
@@ -44,6 +50,7 @@ function updateLeaderboard() {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
             data = xhr.response;
+            document.getElementById("table").innerHTML = "<tr><th>Position</th><th>Name</th><th>Points</th><th>Time</th><th>Language</th></tr>";
             for (let i = 0; i < data.length; i++) {
                 // Add line to leaderboard using JSON response
                 addLine(i+1, data[i].name, data[i].points, data[i].time, data[i].language);
@@ -103,14 +110,13 @@ function modal(i) {
 /* Modal close */
 function modalClose(i) {
     document.getElementById(`modal${i}`).style.display = "none";
-    document.getElementById("points").innerHTML = "";
-    document.getElementById("time").innerHTML = "";
+    document.getElementById("results").innerHTML =  '<div class="loader"></div>';
 }
 
 function resultModal(data) {
-    document.getElementById("points").innerHTML += data.points + "/" + data.maxpoints;
-    document.getElementById("time").innerHTML += data.time + "ms";
+    document.getElementById("results").innerHTML = `<div><p>Points: ${data.points}/${data.maxpoints}</p><p>Time: ${data.time}</p><p>Status: ${data.status}</p></div>`;
 }
+
 
 function updateLanguage() {
     if (checkCookie("language") != "") {
