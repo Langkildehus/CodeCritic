@@ -10,6 +10,7 @@ extern Database db;
 
 bool FindTaskName(std::string& path, std::string& name)
 {
+
 	// Look for "opgaver" in path
 	const size_t index = path.find("opgaver");
 	if (index == std::string::npos || index + 8 > path.size())
@@ -26,6 +27,14 @@ bool FindTaskName(std::string& path, std::string& name)
 
 	// Save name of task and redirect path to the generic html file
 	name = path.substr(index + 8, end - index - 8);
+
+	size_t pos = name.find(' ');
+	while (pos != std::string::npos)
+	{
+		name[pos] = '_';
+		pos = name.find(' ');
+	}
+
 	path = path.substr(0, index) + "opgave.html";
 	return true;
 }
@@ -103,14 +112,24 @@ void HandleGET(const SOCKET connection, const std::string& url, const Cookie& co
 		{
 			// Only look for directories
 			if (!entry.is_directory())
+			{
 				continue;
+			}
 
 			// Find directory name
 			const std::string dir = entry.path().string();
 			const size_t folderIndex = dir.find_last_of("\\");
 
+			std::string assignmentName = dir.substr(folderIndex + 1);
+			size_t pos = assignmentName.find('_');
+			while (pos != std::string::npos)
+			{
+				assignmentName[pos] = ' ';
+				pos = assignmentName.find('_', pos);
+			}
+
 			// Append directory (task) to the string as JSON
-			data += '"' + dir.substr(folderIndex + 1) + "\", ";
+			data += '"' + assignmentName + "\", ";
 		}
 		data.pop_back(); data.pop_back(); // Remove last two characters: ", "
 		data += "]}";
@@ -469,12 +488,19 @@ void HandleRequest(const SOCKET connection, Tester* tester)
 	const size_t urlIndex = header[0].find(' ', typeIndex + 1);
 
 	const std::string type = header[0].substr(0, typeIndex);
-	const std::string url = header[0].substr(typeIndex + 1, urlIndex - typeIndex - 1);
+	std::string url = header[0].substr(typeIndex + 1, urlIndex - typeIndex - 1);
 	if (header[0].substr(urlIndex + 1, header[0].size() - urlIndex - 2) != "HTTP/1.1")
 	{
 		std::cout << "Ignoring request. Expected HTTP/1.1\n";
 		closesocket(connection);
 		return;
+	}
+
+	size_t pos = url.find("%20");
+	while (pos != std::string::npos)
+	{
+		url.replace(url.begin() + pos, url.begin() + pos + 3, " ");
+		pos = url.find("%20", pos);
 	}
 
 	std::cout << type << ':' << url << "\n";

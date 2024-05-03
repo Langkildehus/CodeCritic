@@ -1,5 +1,5 @@
 --Title--
-Opgave 1
+Walid bliver udbetalt
 --Title--
 --Description--
 Walid har meget dårlig hukommelse. Han vil gerne vide, hvor mange penge han tjente på den lønseddel, som han tjente flest penge på.
