@@ -282,7 +282,23 @@ void HandlePOST(const SOCKET connection, const std::string& msg, const std::stri
 		/*const std::string response = "HTTP/1.1 201 OK\r\n\r\n";
 		send(connection, response.c_str(), response.size(), 0);*/
 
-		std::ofstream sourceFile("website/opgaver/" + cookies.assignment + '/' + cookies.username + ".cpp");
+		std::string sourceFilePath = "website/opgaver/" + cookies.assignment + '/' + cookies.username;
+		if (cookies.language == "C++")
+		{
+			sourceFilePath += ".cpp";
+		}
+		else if (cookies.language == "C#")
+		{
+			sourceFilePath += ".cs";
+		}
+		else
+		{
+			std::cout << "No language given\n";
+			const std::string response = "HTTP/1.1 400 Bad Request\r\n\r\n";
+			send(connection, response.c_str(), response.size(), 0);
+			closesocket(connection);
+		}
+		std::ofstream sourceFile(sourceFilePath);
 
 		bool start = false;
 		for (int c = 0; c < sourceCode.size(); c++)

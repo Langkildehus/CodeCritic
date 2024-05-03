@@ -76,11 +76,6 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     {
         sourceFile += ".cs";
     }
-    else
-    {
-        std::cout << "Not a supported language\n";
-        return;
-    }
 
     // Compile submission
     const std::string compilePath = Compile(sourceFile, language);
@@ -97,6 +92,12 @@ void Tester::StartTest(const std::string assignment, const std::string username,
     std::ifstream testFile(path + "testcases.txt");
     while (std::getline(testFile, line))
     {
+        const size_t pos = line.find("\\n");
+        if (pos != std::string::npos && pos > 0 && line[pos - 1] != '\\')
+        {
+            // Change written \n into newline
+            line.replace(line.begin() + pos, line.begin() + pos + 2, "\n");
+        }
         testCases.push_back(line);
     }
     testFile.close();
@@ -196,11 +197,11 @@ inline std::string Tester::Compile(const std::string& path, const std::string& l
     // Compile file on given path
     if (language == "C++")
     {
-        cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + " " + path;
+        cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + ' ' + path;
     }
     else if (language == "C#")
     {
-        cmd = "g++ --std=c++17 -O3 -mavx2 -o " + compilePath + " " + path;
+        cmd = "C:\\Windows\\Microsoft.NET\\Framework\\v3.5\\csc.exe /t:exe /out:" + compilePath + ' ' + path;
     }
     std::system(cmd.c_str());
 
