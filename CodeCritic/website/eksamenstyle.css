@@ -175,5 +175,8 @@ textarea {
 
 #sidebutton  button {
     width: 95%;
+    border-radius: 5px;
+    background-color: aqua;
+    font-size: larger;
 }
 

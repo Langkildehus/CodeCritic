@@ -106,11 +106,12 @@ th, td {
     border: 1px solid #888;
     width: 30%;
     height: 35%;
+    align-items: center;
+    text-align: center;
 }
 
 .close {
     height: 30px;
-    background-color: yellow;
 }
 
 .close button {
@@ -125,8 +126,6 @@ th, td {
 }
 
 #results {
-    width: 100%;
-    background-color: green;
     text-align: center;
     align-items: center;
 }
@@ -137,6 +136,10 @@ th, td {
     
 }
 
+#results p {
+    font-size: 30px;
+}
+
 .loader {
     border: 16px solid #f3f3f3; /* Light grey */
     border-top: 16px solid aqua; /* Blue */
@@ -144,7 +147,7 @@ th, td {
     width: 120px;
     height: 120px;
     animation: spin 2s linear infinite;
-    align-self: center;
+    margin: auto;
   }
   
   @keyframes spin {

@@ -1,13 +1,16 @@
-// Update leaderboard on iframe load
+// Update leaderboard and language on iframe load
 window.addEventListener("load", () => {
     updateLeaderboard();
     updateLanguage();
 })
 
+// Onclick functions
 window.onclick = function (event) {
+    // Close dropdown on click
     if (!event.target.matches('#language') && document.getElementById("dropdownContent").classList.contains("show")) {
         document.getElementById("dropdownContent").classList.toggle("show");
     }
+    // Close modal on click
     if (event.target.matches('.modal') && document.getElementById("modal1").style.display == "block") {
         console.log("lukker");
         modalClose(1);
@@ -124,11 +127,12 @@ function modalClose(i) {
     document.getElementById("results").innerHTML =  '<div class="loader"></div>';
 }
 
+// Add server response to result modal
 function resultModal(data) {
     document.getElementById("results").innerHTML = `<div><p>Points: ${data.points}/${data.maxpoints}</p><p>Time: ${data.time}</p><p>Status: ${data.status}</p></div>`;
 }
 
-
+// Update language dropdown text
 function updateLanguage() {
     if (checkCookie("language") != "") {
         document.getElementById("language").innerHTML = checkCookie("language") + " ▼";

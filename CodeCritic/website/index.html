@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <!-- Define charset, linked files and browser title -->
         <meta charset="UTF-8">
         <link rel="stylesheet" href="eksamenstyle.css">
         <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -8,6 +9,7 @@
         <title>CodeCritic</title>
     </head>
     <body>
+        <!-- Login modal -->
         <div id="modal1" class="modal">
             <div class="mContent">
                 <div class="close">
@@ -29,6 +31,7 @@
                 </div>
             </div>
         </div>
+        <!-- Signup modal -->
         <div id="modal2" class="modal">
             <div class="mContent">
                 <div class="close">
@@ -48,7 +51,9 @@
                 </div>
             </div>
         </div>
+        <!-- Website body -->
         <div class="header">
+            <!-- Top bar -->
             <div class="top">
                <ul>
                 <li><h1>CodeCritic</h1></li>
@@ -56,10 +61,12 @@
                </ul>
             </div>
             <div class="body">
+                <!-- Sidebar -->
                 <div class="sidebar">
                     <div id="side"></div>
                     <div id="sidebutton"><button onclick="document.getElementById('frame').src = '/newassignment.html'">Add new assignment</button></div>
                 </div>
+                <!-- Website content using iframe -->
                 <div class="content">
                     <iframe id="frame" src=""></iframe>
                 </div>
