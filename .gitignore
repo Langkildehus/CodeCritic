@@ -1,6 +1,6 @@
 .vs/
 x64/
-CodeCritic/Database.db
+*.db
 
 # Prerequisites
 *.d
