@@ -7,7 +7,7 @@ Givet en liste af længden, n, antallet af lønsedler, hvor hvert element er ant
 --Description--
 --Input--
 Linje 1: Tallet n
-Linje 2: n mellemrums separeret tal, m
+Linje 2: n mellemrums separeret tal, a<sub>1</sub>, a<sub>2</sub> ... a<sub>n</sub>
 --Input--
 --Output--
 Walids højeste løn
@@ -21,5 +21,7 @@ Walids højeste løn
 --ExampleOutput--
 --Constraints--
 1 &#8804; n &#8804; 100000
+1 &#8804; a<sub>i</sub> &#8804; 1000000000
 Time: 1000 milliseconds
+Points per test case: 1
 --Constraints--

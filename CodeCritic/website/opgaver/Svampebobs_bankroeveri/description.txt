@@ -1,29 +1,30 @@
 --Title--
-Svampebobs bankroeveri
+Svampebobs bankrøveri
 --Title--
 --Description--
-Svampebob planlægger et bankrøveri og har brug for din hjælp. Banken har n bankbokse. I den i-te bankboks er der b kroner.
+Svampebob har brug for din hjælp til at planlægge et bankrøveri. Banken har <code>n</code> bankbokse. I den <code>i-te</code> bankboks er der <code>b</code> kroner.
 Han har ikke tid til at røve alle bankboksene, faktisk tror han ikke der er tid til at røve mere end én boks.
-Svampebob tror, at det er for mistænkeligt hvis han bare røver den boks med flest penge i. Han vil altså hellere gå efter den bankboks med næstflest penge i.
-Hvis Svampebob har success med sin plan, hvor mange penge vil han så få fingrene i?
+Svampebob tror, at det er for mistænkeligt, hvis han røver den boks med flest penge i. Han vil altså hellere gå efter den bankboks med næstflest penge i.
+Hvis Svampebob's plan lykkedes, hvor mange penge får han så?
 --Description--
 --Input--
-1: Tallet n
-2: N hele tal, b1, b2 ... bn
+Linje 1: Tallet n
+Linje 2: n hele tal, a<sub>1</sub>, a<sub>2</sub> ... a<sub>n</sub>
 --Input--
 --Output--
-Outputtet skal bestå af ét tal, nemlig mængden af pænge Svampebob røver.
+Linja 1: Mængden af penge Svampebob røver
 --Output--
 --ExampleInput--
 4
-4 2 3 1
+6 3 1 2
 --ExampleInput--
 --ExampleOutput--
 3
 --ExampleOutput--
 --Constraints--
 2 &#8804; n &#8804; 100000
-1 &#8804; b &#8804; 1000000000
-Ingen to bankbokse indeholder samme mængde penge.
+1 &#8804; a<sub>i</sub> &#8804; 1000000000
+Ingen bankbokse har samme mængde penge
 Time: 1000 milliseconds
+Points per test case: 1
 --Constraints--

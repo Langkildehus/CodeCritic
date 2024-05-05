@@ -45,7 +45,7 @@ int main()
 
 <h3>C#</h3>Ideen er den samme i C#, men her skal man dog tage input og output på en lidt anderledes måde.
 Man skal være opmærksom på beskrivelsen af inputtet til opgaven. I C# tager <code>Console.ReadLine()</code> en hel linje input ad gangen.
-Hvis der derfor er flere tal på samme linje, skal man bruge <code>Console.ReadLine().Split(" ")</code> for at dele linjen op i de tal der er på linjen.
+Hvis der derfor er flere tal på samme linje, kan man f.eks. bruge <code>Console.ReadLine().Split(" ")</code> for at dele linjen op i de tal der er på linjen.
 I stedet for <code>std::cin</code> og <code>std::cout</code> bruges nu <code>Console.ReadLine()</code> og <code>Console.Write</code>:
 <code><div>using System;
 
@@ -76,4 +76,5 @@ class Submission
 --Constraints--
 1 &#8804; n &#8804; 1000
 Time: 100 milliseconds
+Points per test case: 1
 --Constraints--

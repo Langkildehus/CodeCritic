@@ -18,7 +18,8 @@ int main()
     If the problem has multiple solutions, it might be better to just save the test inputs for now, and not solve the problem before the submission has sent their answer
     This way you can check if their solution is valid afterwards rather than having to calculate all possible solutions
     */
-    int n, j, ans, biggest = 0;
+    int maxPoints, n, j, ans, biggest = 0;
+    std::cin >> maxPoints;
     std::cin >> n;
     for (int c = 0; c < n; c++)
     {
@@ -40,6 +41,9 @@ int main()
     */
     std::cout << '\r';
 
-    // Step 5: Return result of test
-    std::cout << (ans == biggest);
+    /*
+    Step 5: Return result of test.
+    The maximum amount of points a submission can give, is given in the first input from stdin, in this cas maxPoints
+    */
+    std::cout << maxPoints * (ans == biggest);
 }

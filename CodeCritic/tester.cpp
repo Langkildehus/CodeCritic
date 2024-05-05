@@ -79,7 +79,7 @@ void Tester::StartTest(const std::string assignment, const std::string username,
 
     // Compile submission
     const std::string compilePath = Compile(sourceFile, language);
-
+    
     // Convert file paths to LPCWSTR
     const std::wstring wTestPathName = std::wstring(compilePath.begin(), compilePath.end());
     const std::wstring wJudgePathName = std::wstring(sJudgePath.begin(), sJudgePath.end());
@@ -104,14 +104,18 @@ void Tester::StartTest(const std::string assignment, const std::string username,
 
     // Read config
     int timeLimit = 1000;
+    std::string maxPoints = "1";
     std::ifstream configFile(path + "config.txt");
     int lineNumber = 0;
-    while (std::getline(testFile, line))
+    while (std::getline(configFile, line))
     {
         switch (lineNumber)
         {
         case 0:
             timeLimit = std::stoi(line);
+            break;
+        case 1:
+            maxPoints = line;
             break;
         }
         lineNumber++;
@@ -120,78 +124,78 @@ void Tester::StartTest(const std::string assignment, const std::string username,
 
     // Run test cases
     std::string status = "Success";
-    int statusCode = 0, points = 0, attempts = 4;
+    int points = 0;
     ull time = 0;
+
+    if (compilePath == "")
+    {
+        status = "Compile error";
+        goto endtest;
+    }
+
     std::cout << "Starting test for " << username << ":\n";
     for (uint c = 0; c < testCases.size(); c++)
     {
-        const Result res = Test(judgePath, testPath, testCases[c], timeLimit);
+        const Result res = Test(judgePath, testPath, testCases[c], timeLimit, maxPoints);
         std::cout << '[' << c + 1 << '/' << testCases.size() << "]: ";
         switch (res.status)
         {
         case 0:
-            attempts = 4;
             if (res.points > 0)
             {
                 time += res.time;
                 points += res.points;
             }
-            else if (statusCode == 0 || statusCode > 1)
+            else
             {
-                statusCode = 1;
                 status = "Wrong answer";
             }
             std::cout << "Points: " << res.points << ", Time taken: " << res.time << "\n";
             break;
         case 1:
             std::cout << "Error creating pipes for judge!\n";
-            break;
+            status = "Judge pipes startup error";
+            goto endtest;
         case 2:
             std::cout << "Error creating pipes for submission!\n";
-            break;
+            status = "Pipes startup error";
+            goto endtest;
         case 3:
             std::cout << "Error while starting judge\n";
-            break;
+            status = "Judge startup error";
+            goto endtest;
         case 4:
             std::cout << "Error while starting submission\n";
-            if (statusCode == 0 || statusCode > 4)
-            {
-                statusCode = 4;
-                status = "Compile error";
-            }
-            break;
+            status = "Startup error";
+            goto endtest;
         case 5:
             std::cout << "Timelimit exceeded!\n";
-            if (attempts > 0)
-            {
-                attempts--;
-                c--;
-            }
-            else
-            {
-                if (statusCode == 0 || statusCode > 5)
-                {
-                    statusCode = 5;
-                    status = "Timelimit exceeded";
-                }
-            }
-            break;
+            status = "Timelimit exceeded";
+            goto endtest;
         case 6:
             std::cout << "Judge failed to load test data\n";
-            break;
+            status = "Judge failed to load test data";
+            goto endtest;
+        case 7:
+            std::cout << "Exited with no answer (potentially runtime error)\n";
+            status = "Exited with no answer (potentially runtime error)";
+            goto endtest;
         default:
             std::cout << "Unknown error during test\n";
-            break;
+            status = "Unknown error";
+            goto endtest;
         }
     }
-    std::cout << "Score: " << points << '/' << testCases.size() << ", Time taken: " << time << "\n";
+
+endtest:
+    std::cout << "Score: " << points << '/' << testCases.size() * std::stoi(maxPoints) << ", Time taken: " << time << "\n";
 
     // Save test result in DB
     SaveScore(assignment, username, points, time, language);
 
     // Create response header and body
     const std::string body = "{\"points\": " + std::to_string(points)
-        + ", \"maxpoints\": " + std::to_string(testCases.size())
+        + ", \"maxpoints\": " + std::to_string(testCases.size() * std::stoi(maxPoints))
         + ", \"time\": " + std::to_string(time)
         + ", \"language\": \"" + language + '"'
         + ", \"status\": \"" + status + "\"}";
@@ -224,6 +228,10 @@ inline std::string Tester::Compile(const std::string& path, const std::string& l
         cmd = "C:\\Windows\\Microsoft.NET\\Framework\\v3.5\\csc.exe /optimize /t:exe /out:" + compilePath + ' ' + path;
     }
     std::system(cmd.c_str());
+    if (!std::filesystem::exists(compilePath))
+    {
+        return "";
+    }
 
     return compilePath;
 }
@@ -242,7 +250,7 @@ inline void Tester::Delete(const std::string& deletePath) const
 }
 
 Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
-    std::string& testData, const int timeLimit) const
+    std::string& testData, const int timeLimit, std::string& precondition) const
 {
     // https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output?redirectedfrom=MSDN
 
@@ -251,6 +259,11 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
     Result res{};
     std::vector<std::string> inputs;
     std::vector<std::string> outputs;
+
+    // Allocate huge chunk of memory for both vectors to avoid calls to move the vector to avoid out of bounds,
+    // as this could happen while the write thread is using it, which would leave to a data race and therefore undefined behaviour
+    inputs.reserve(1000000);
+    outputs.reserve(1000000);
 
     // Create pipes for std I/O for judge
     HANDLE judgeStdInRead = NULL;
@@ -389,17 +402,14 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
         return res;
     }
 
-    {
-        // Give time for CreateProcess to finish starting the process
-        std::this_thread::sleep_for(100ms);
-    }
+    // Give time for CreateProcess to finish starting the processes
+    std::this_thread::sleep_for(100ms);
 
     WriteThreadData judgeWriteData{ judgeStdInWrite };
     std::thread judgeWriteThread;
     {
         std::unique_lock<std::mutex> lock(judgeWriteData.mtx);
         judgeWriteThread = std::thread(&Tester::WriteThread, this, &judgeWriteData);
-        judgeWriteData.cnd.wait(lock);
     }
     
     WriteThreadData submissionWriteData{ childStdInWrite };
@@ -407,12 +417,15 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
     {
         std::unique_lock<std::mutex> lock(submissionWriteData.mtx);
         submissionWriteThread = std::thread(&Tester::WriteThread, this, &submissionWriteData);
-        submissionWriteData.cnd.wait(lock);
     }
 
-    judgeWriteData.str = &testData;
+    judgeWriteData.mtx.lock();
+    judgeWriteData.queue.push_back(&precondition);
+    judgeWriteData.queue.push_back(&testData);
+    judgeWriteData.mtx.unlock();
     judgeWriteData.cnd.notify_one();
-    ull now, start = GetTime();
+
+    ull now, exit = 0, start = GetTime();
     while (GetTime() - start < 5 * timeLimit
         && (outputs.size() < 1 || outputs[outputs.size() - 1].find('\r') == std::string::npos))
     {
@@ -420,16 +433,28 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
     }
     if (GetTime() - start <= 5 * timeLimit)
     {
-        // Start test
-        submissionWriteData.str = &testData;
+        // Send testdata to write thread for submission
+        submissionWriteData.mtx.lock();
+        submissionWriteData.queue.push_back(&testData);
+        submissionWriteData.mtx.unlock();
         submissionWriteData.cnd.notify_one();
+
+        // Start test
         start = GetTime();
         now = start;
-
         while (now - start <= timeLimit)
         {
+            // Check if submission is still running
+            DWORD status;
+            if (!GetExitCodeProcess(processInfo.hProcess, &status) || status != STILL_ACTIVE && exit == 0)
+            {
+                // If submission is not running, save timestamp for exit
+                exit = now;
+            }
+
             if (ReadFromPipe(childStdOutRead, inputs))
             {
+                exit = 0;
                 std::string& input = inputs[inputs.size() - 1];
                 CleanFromENDL(input);
 
@@ -441,12 +466,13 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
                         goto breakout;
                     }
                 }
-                judgeWriteData.str = &inputs[inputs.size() - 1];
+                judgeWriteData.queue.push_back(&inputs[inputs.size() - 1]);
                 judgeWriteData.mtx.unlock();
                 judgeWriteData.cnd.notify_one();
             }
             if (ReadFromPipe(judgeStdOutRead, outputs))
             {
+                exit = 0;
                 std::string& output = outputs[outputs.size() - 1];
                 CleanFromENDL(output);
                 const size_t pos = output.find('\r');
@@ -499,10 +525,17 @@ Result Tester::Test(const LPCWSTR& judgePath, const LPCWSTR& testPath,
                             goto breakout;
                         }
                     }
-                    submissionWriteData.str = &outputs[outputs.size() - 1];
+                    submissionWriteData.queue.push_back(&outputs[outputs.size() - 1]);
                     submissionWriteData.mtx.unlock();
                     submissionWriteData.cnd.notify_one();
                 }
+            }
+
+            // Give a few milliseconds after submission exit to make 100% sure all potential inputs have been read
+            if (exit != 0 && now - exit > 10)
+            {
+                res.status = 7;
+                goto breakout;
             }
 
             now = GetTime();
@@ -603,28 +636,24 @@ bool Tester::ReadFromPipe(const HANDLE& pipeHandle, std::vector<std::string>& ve
 
 void Tester::WriteThread(WriteThreadData* threadData) const
 {
-    threadData->cnd.notify_one();
     while (threadData->go)
     {
         // Acquire lock & wait
         std::unique_lock<std::mutex> lock(threadData->mtx);
-        threadData->cnd.wait(lock);
-
-        // Make sure there is something to read
-        if (threadData->str == nullptr)
+        if (threadData->queue.size() < 1)
         {
-            continue;
+            threadData->cnd.wait(lock);
         }
 
-        // Make sure thread is still supposed to run
-        if (!threadData->go)
+        // Write everything from queue
+        for (std::string* s : threadData->queue)
         {
-            break;
+            // Write data and reset pointer
+            WriteToPipe(threadData->pipeHandle, *s);
         }
         
-        // Write data and reset pointer
-        WriteToPipe(threadData->pipeHandle, *threadData->str);
-        threadData->str = nullptr;
+        // Empty vector
+        threadData->queue.clear();
     }
 }
 

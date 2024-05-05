@@ -2,7 +2,8 @@
 
 int main()
 {
-	int ans, n, j, max1 = 0, max2 = 0;
+	int maxPoints, ans, n, j, max1 = 0, max2 = 0;
+	std::cin >> maxPoints;
 	std::cin >> n;
 	for (int c = 0; c < n; c++)
 	{
@@ -19,5 +20,5 @@ int main()
 	}
 	std::cout << '\r';
 	std::cin >> ans;
-	std::cout << '\r' << (ans == max2);
+	std::cout << '\r' << maxPoints * (ans == max2);
 }

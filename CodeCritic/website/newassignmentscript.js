@@ -12,6 +12,7 @@ function submit() {
         exInput: document.getElementById("assignmentExampleInput").value,
         exOutput: document.getElementById("assignmentExampleOutput").value,
         time: document.getElementById("assignmentTime").value,
+        points: document.getElementById("assignmentPoints").value,
         constraint: document.getElementById("assignmentConstraint").value,
         tests: document.getElementById("assignmentTestcases").value,
         judge: document.getElementById("assignmentJudge").value,
@@ -26,6 +27,7 @@ function submit() {
           document.getElementById("assignmentExampleInput").value = "";
           document.getElementById("assignmentExampleOutput").value = "";
           document.getElementById("assigmentTime").value = "";
+          document.getElementById("assignmentPoints").value = "";
           document.getElementById("assignmentConstraint").value = "";
           document.getElementById("assignmentTestcases").value = "";
           document.getElementById("assignmentJudge").value = "";

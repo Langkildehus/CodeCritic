@@ -67,15 +67,15 @@ void RespondWithError(const SOCKET connection, const std::string& errormsg)
 
 void CreateAssignment(const SOCKET connection, const std::string& msg)
 {
-	const std::string parameterNames[10] = { "\"name\"", "\"description\"", "\"input\"", "\"output\"",
-		"\"exInput\"", "\"exOutput\"", "\"time\"", "\"constraint\"", "\"tests\"", "\"judge\"" };
+	const std::string parameterNames[11] = { "\"name\"", "\"description\"", "\"input\"", "\"output\"",
+		"\"exInput\"", "\"exOutput\"", "\"time\"", "\"constraint\"", "\"points\"", "\"tests\"", "\"judge\"" };
 	const std::string customVars[7] = { "--Title--", "--Description--", "--Input--", "--Output--",
 		"--ExampleInput--", "--ExampleOutput--", "--Constraints--" };
 
-	std::string parameters[10]{};
+	std::string parameters[11]{};
 
 	// Parse from json to c++ strings
-	for (int c = 0; c < 10; c++)
+	for (int c = 0; c < 11; c++)
 	{
 		const size_t startPos = msg.find('"', msg.find(parameterNames[c]) + parameterNames[c].size()) + 1;
 		size_t endPos = msg.find('"', startPos);
@@ -150,7 +150,7 @@ void CreateAssignment(const SOCKET connection, const std::string& msg)
 
 	// Create files
 	std::ofstream file(configPath);
-	file << timeLimit;
+	file << timeLimit << '\n' << parameters[8];
 	file.close();
 
 	file = std::ofstream(descriptionPath);
@@ -162,15 +162,16 @@ void CreateAssignment(const SOCKET connection, const std::string& msg)
 	}
 	file << parameters[7];
 	file << "\nTime: " << timeLimit << " milliseconds\n";
+	file << "Points per test case: " << parameters[8] << '\n';
 	file << customVars[6] << '\n';
 	file.close();
 
 	file = std::ofstream(testCasesPath);
-	file << parameters[8];
+	file << parameters[9];
 	file.close();
 
 	file = std::ofstream(judgePath + "cpp");
-	file << parameters[9];
+	file << parameters[10];
 	file.close();
 
 	// Compile judge
@@ -180,7 +181,7 @@ void CreateAssignment(const SOCKET connection, const std::string& msg)
 	// Create table for the new assignment
 	db.createAssignment(assignment);
 
-	const std::string response = "HTTP/1.1 200 OK\r\n\r\n";
+	const std::string response = "HTTP/1.1 201 Created\r\n\r\n";
 	send(connection, response.c_str(), response.size(), 0);
 	closesocket(connection);
 }

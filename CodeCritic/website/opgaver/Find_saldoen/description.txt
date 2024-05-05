@@ -35,4 +35,5 @@ SVAR: CORRECT
 --Constraints--
 1 &#8804; n &#8804; 100000000000000000
 Time: 1000 milliseconds
+Points per test case: 100
 --Constraints--
