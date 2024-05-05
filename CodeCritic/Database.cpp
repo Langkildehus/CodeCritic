@@ -79,7 +79,7 @@ int Database::insertData(const std::string& tName, const std::string& username, 
 		tempPoints >> DBpoints;
 		tempTime << sqlite3_column_text(stmt, 1);
 		tempTime >> DBtime;
-		std::cout << DBpoints << "\n" << DBtime << "\n";
+		std::cout << "Saved points: " << DBpoints << ", Saved time: " << DBtime << "\n";
 
 		// Check if the new score is better or the new score is the same and the time is better 
 		if (DBpoints < Points || (DBpoints == Points && DBtime > time))
