@@ -9,6 +9,25 @@
 void HandleRequest(const SOCKET connection, Tester* tester);
 Database db{}; //create a instance of Database
 
+struct Config
+{
+	std::string IP;
+	int PORT;
+	int QUEUE;
+};
+
+Config Load()
+{
+	std::string ip;
+	int port, queue;
+
+	std::ifstream f("config.txt");
+	f >> ip >> port >> queue;
+	f.close();
+
+	return { ip, port, queue };
+}
+
 void SetupAssignments()
 {
 	const std::string path = "website\\opgaver\\";
@@ -45,9 +64,11 @@ int main()
 	// Instantiate Tester
 	Tester tester{};
 
+	const Config cfg = Load();
+
 	// Start listening on webserver
-	Socket server = Socket("127.0.0.1", 80);
-	server.Listen(5);
+	Socket server = Socket(cfg.IP, cfg.PORT);
+	server.Listen(cfg.QUEUE);
 
 	while (true)
 	{
