@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Define links and charset -->
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/newassignmentstyle.css">  
+        <script src="newassignmentscript.js"></script>
+    </head>
+    <body>
+        <!-- Add asignment form -->
+        <div class="divider">
+        <p>Assignment name:</p>
+        <input id="assignmentName">
+        <p>Description:</p>
+        <textarea id="assignmentDescription"></textarea>
+        <p>Input:</p>
+        <textarea id="assignmentInput"></textarea>
+        <p>Output:</p>
+        <textarea id="assignmentOutput"></textarea>
+        <p>Example input:</p>
+        <textarea id="assignmentExampleInput"></textarea>
+        <p>Example output:</p>
+        <textarea id="assignmentExampleOutput"></textarea>
+        <p>Time limit: </p>
+        <input type="number" id="assignmentTime">
+        <p>Max points per test:</p>
+        <input type="number" id="assignmentPoints">
+        <p>Constraint:</p>
+        <textarea id="assignmentConstraint"></textarea>
+        <p>Testcases: </p>
+        <textarea id="assignmentTestcases"></textarea>
+        <p>Judge:</p>
+        <textarea id="assignmentJudge"></textarea>
+        <p id="error"></p> 
+        <button onclick="submit()">Submit</button>
+    </div>
+    </body>
+</html>

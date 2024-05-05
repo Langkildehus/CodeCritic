@@ -1,0 +1,189 @@
+* {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0,0.4);
+}
+
+.mContent {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 30%;
+    height: 35%;
+}
+
+.close {
+    height: 30px;
+}
+
+.close button {
+    border: none;
+    font-size: 30px;
+    background-color: #fefefe;
+    float: right;
+}
+
+.close button:hover {
+    color: #888;
+}
+
+.form {
+    margin: auto;
+    width: 240px;
+}
+
+.form input {
+    height: 30px;
+    border-radius: 15px;
+    width: 240px;
+}
+
+.form button {
+    height: 30px;
+    background-color: #fefefe;
+    border-radius: 15px;
+    width: 240px;
+}
+
+.form button:hover {
+    background-color: #888;
+}
+
+.form textarea {
+    height: 200px;
+}
+
+.header {
+    height: 100%;
+    width: 100%;
+}
+
+.body {
+   height: 94%;
+}
+
+.top {
+    display: block;
+    height: 5.5%;
+    min-height: 50px;
+}  
+
+.top ul {
+    overflow: hidden;
+    list-style-type: none;
+    background-color: #49BCA3;
+}
+
+.top li {
+    float: left;
+}
+
+.top h1 {   
+    background-color: #49BCA3;
+    padding: 8px;
+    font-size: 34px;
+    display: block;
+    height: 100%;
+    padding: 16px;
+}
+
+.top button {
+    display: block;
+    text-align: center;
+    padding: 16px;
+    border: none;
+    background-color: #49BCA3;
+}
+
+.sidebar {
+    display: block;
+    width: 20%;
+    background-color: lightgray;
+    border-right: 1px solid black;
+    box-sizing: border-box;
+}
+#side {
+    width: 100%;
+}
+
+#side div {
+    height: 50px;
+    width: 100%;
+    margin: auto;
+    text-align: center;
+    padding-top:20px;
+    font-size: 20px;
+}
+
+#side div:hover {
+    background-color: gray;
+}
+
+#sidebutton button {
+    border-radius: 5px;
+    border: 1px solid black;
+}
+
+.top button:hover {
+    background-color: gray;
+}
+
+.body div {
+    float: left;
+}
+
+.content {
+    display: block;
+    background-color: lightgray;
+    height: 100%;
+    width: 80%;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+#error {
+    color: red;
+}
+
+textarea {
+    resize: none;
+}
+
+#side {
+    height: 95%;
+}
+
+
+#sidebutton {
+    height: 5%;
+    width: 100%;
+    text-align: center;
+}
+
+#sidebutton  button {
+    width: 95%;
+    border-radius: 5px;
+    background-color: #49BCA3;
+    font-size: larger;
+}
+
+#sidebutton button:hover {
+    background-color: gray;
+}

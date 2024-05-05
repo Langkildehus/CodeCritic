@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Define links and charset -->
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../opgavestyle.css">
+        <script src="../opgavescript.js"></script>
+    </head>
+    <body>
+        <!-- Result modal -->
+        <div id="modal1" class="modal">
+            <div class="mContent">
+                <div class="close">
+                    <button onclick="modalClose(1)">X</button>
+                </div><br>
+                <div id="results">
+                <div class="loader"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- iframe template -->
+        <div class="divider" id="desc">
+        <h1>{{Title}}</h1>
+        <p>{{Description}}</p>
+
+        <h2>Input</h2>
+        <p>{{Input}}</p>
+        <h2>Output</h2>
+        <p>{{Output}}</p>
+
+        <h2>Examples</h2>
+        <h3>Input</h3>
+        <code><div>{{ExampleInput}}</div></code>
+        <h3>Output</h3>
+        <code><div>{{ExampleOutput}}</div></code>
+
+        <h2>Constraints</h2>
+        <code>{{Constraints}}</code>
+        </div>
+        <!-- Submission form -->
+        <div class="divider">
+        <h2>Submit</h2>
+        <!-- Dropdown for language selection -->
+        <div class="dropdown" id="dropdown">
+            Language: <button id="language" onclick="dropDown()"></button>
+            <div id="dropdownContent" class="dropdownContent">
+                <button onclick="setCookie('language','C++',1);updateLanguage()">C++</button>
+                <button onclick="setCookie('language','C#',1);updateLanguage()">C#</button>
+            </div>
+        </div>
+        <br><br>
+        <div class="submit">
+            <textarea id="kildekode"></textarea>
+            <br>
+            <button id="submit" onclick="submission()">Submit</button>
+        </div>
+        <p id="notLoggedIn" style="color: red;"></p>
+        </div>
+        <!-- Leaderboard -->
+        <div class="divider">
+        <h2>Leaderboard</h2>
+        <div class="leaderboard">
+            <table id="table">
+                <tr>
+                    <th>Position</th>
+                    <th>Name</th>
+                    <th>Points</th>
+                    <th>Time</th>
+                    <th>Language</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+    </body>
+</html>

@@ -1,0 +1,27 @@
+--Title--
+Walid betales
+--Title--
+--Description--
+Walid har meget dårlig hukommelse. Han vil gerne vide, hvor mange penge han tjente på den lønseddel, som han tjente flest penge på.
+Givet en liste af længden, n, antallet af lønsedler, hvor hvert element er antal kr. tjent på den lønseddel, skal du fortælle Walid, hvor mange penge han tjente på sin største lønseddel.
+--Description--
+--Input--
+Linje 1: Tallet n
+Linje 2: n mellemrums separeret tal, a<sub>1</sub>, a<sub>2</sub> ... a<sub>n</sub>
+--Input--
+--Output--
+Walids højeste løn
+--Output--
+--ExampleInput--
+5
+2 10 50 40 69
+--ExampleInput--
+--ExampleOutput--
+69
+--ExampleOutput--
+--Constraints--
+1 &#8804; n &#8804; 100000
+1 &#8804; a<sub>i</sub> &#8804; 1000000000
+Time: 1000 milliseconds
+Points per test case: 1
+--Constraints--

@@ -1,0 +1,39 @@
+--Title--
+Find saldoen
+--Title--
+--Description--
+Du kan ikke huske, hvor mange penge du har stående på bankkontoen. Banken er meget primitiv, og starter derfor med at sige, hvor mange penge du højst kan have på kontoen, n. Herefter kan du blive ved med at gætte på et tal mellem 1 og n, indtil du gætter rigtigt. Hver gang du gætter svarer banken med "HIGHER", "LOWER" eller "CORRECT". For at banken ikke bliver træt af dig, skal du på så få gæt som muligt finde ud af, hvor mange penge du har stående på kontoen.
+--Description--
+--Input--
+StartInput
+Linje 1: Tallet n
+
+Interaktivt efter hvert gæt:
+Linje 1: Streng med resultatet af dit gæt
+--Input--
+--Output--
+Interaktivt:
+Linje 1: Dit gæt, et tal
+--Output--
+--ExampleInput--
+10
+--ExampleInput--
+--ExampleOutput--
+Interaktivt:
+1
+SVAR: HIGHER
+
+2
+SVAR: HIGHER
+
+5
+SVAR: LOWER
+
+4
+SVAR: CORRECT
+--ExampleOutput--
+--Constraints--
+1 &#8804; n &#8804; 100000000000000000
+Time: 1000 milliseconds
+Points per test case: 100
+--Constraints--
