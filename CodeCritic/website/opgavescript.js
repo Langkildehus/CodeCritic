@@ -1,6 +1,9 @@
 // Update leaderboard and language on iframe load
 window.addEventListener("load", () => {
     updateLeaderboard();
+    if (checkCookie("language") == "") {
+        setCookie("language","C++",1);
+    }
     updateLanguage();
 })
 
