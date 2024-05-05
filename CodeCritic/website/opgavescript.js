@@ -12,7 +12,6 @@ window.onclick = function (event) {
     }
     // Close modal on click
     if (event.target.matches('.modal') && document.getElementById("modal1").style.display == "block") {
-        console.log("lukker");
         modalClose(1);
     }
 }
@@ -20,11 +19,9 @@ window.onclick = function (event) {
 // POST submission to server
 function submission() {
     if (document.getElementById("kildekode").value == "") {
-        console.log("emoty");
         return;
     }
     modal(1);
-    console.log(document.getElementById("kildekode").value);
     // POST request
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "http://127.0.0.1/submit");
@@ -35,9 +32,7 @@ function submission() {
         code: document.getElementById("kildekode").value,
     });
     xhr.onload = () => {
-        console.log("jeg er lige her");
         if (xhr.readyState == 4 && xhr.status == 201) {
-            console.log(xhr.response);
             document.getElementById("notLoggedIn").innerHTML = "";
             resultModal(xhr.response);
             updateLeaderboard();
@@ -94,7 +89,6 @@ function dropDown() {
 
 // Cookies
 function setCookie(cookieName, cookieValue, cookieExp) {
-    console.log("hej");
     const date = new Date();
     date.setTime(date.getTime() + cookieExp * 1000 * 60 * 60 * 24);
     let expires = "expires="+date.toUTCString();
