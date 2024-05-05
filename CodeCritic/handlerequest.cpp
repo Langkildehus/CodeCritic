@@ -179,6 +179,10 @@ void CreateAssignment(const SOCKET connection, const std::string& msg)
 
 	// Create table for the new assignment
 	db.createAssignment(assignment);
+
+	const std::string response = "HTTP/1.1 200 OK\r\n\r\n";
+	send(connection, response.c_str(), response.size(), 0);
+	closesocket(connection);
 }
 
 bool FindTaskName(std::string& path, std::string& name)
