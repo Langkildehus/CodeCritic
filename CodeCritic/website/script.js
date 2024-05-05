@@ -2,9 +2,8 @@
 window.addEventListener("load", () => {
     /* GET request - Opgaver */
     const xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://127.0.0.1/opgaver");
+    xhr.open("GET", "/opgaver");
     xhr.send();
-    console.log("Hej");
     xhr.responseType = "json";
     xhr.onload = () => {
     if (xhr.readyState == 4 && xhr.status == 200) {
@@ -13,7 +12,6 @@ window.addEventListener("load", () => {
         for (let i = 0; i < data.Opgaver.length; i++) {
             document.getElementById("side").innerHTML += `<div onclick="chooseAssignment('${data.Opgaver[i]}')">` + data.Opgaver[i] + `</div><br/><br/>`;
         }
-            console.log(data);
         } else {
             console.log("Error");
         }    
@@ -50,15 +48,13 @@ function login() {
     var password = document.getElementById("pwd").value;
     document.getElementById("user").value = "";
     document.getElementById("pwd").value = "";
-    console.log(username);
-    console.log(password);
     loginServer(username,password);
 }
 
 /* POST login */
 function loginServer(username, password) {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1/login");
+    xhr.open("POST", "/login");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     const body = JSON.stringify({
         user: username,
@@ -70,7 +66,6 @@ function loginServer(username, password) {
             setCookie("username", username, 1);
             modalClose(1);
           } else {
-            console.log("No");
             document.getElementById("error").innerHTML = "Login failed";
           }
         } else {
@@ -97,21 +92,18 @@ function signup() {
     document.getElementById("pwd1").value = "";
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1/signup");
+    xhr.open("POST", "/signup");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     const body = JSON.stringify({
         user: username,
         pwd: password,
     });
-
-    console.log(body);
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 201) {
           if (JSON.parse(xhr.responseText).status == "Accepted") {
             setCookie("username", username, 1);
             modalClose(2);
           } else {
-            console.log("No");
             document.getElementById("error").innerHTML = "Login failed";
           }
         } else {
@@ -169,7 +161,6 @@ function checkAssignmentCookie() {
 
 // Logout function
 function logout() {
-    console.log("Logoutfeg");
     setCookie("username", "", 0);
     checkCookie();
 }
