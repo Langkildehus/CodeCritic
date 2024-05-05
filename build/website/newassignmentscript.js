@@ -1,7 +1,7 @@
 // Submit assignment function (POST request)
 function submit() {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1/newassignment");
+    xhr.open("POST", "/newassignment");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     const body = JSON.stringify({
         // Form values to JSON

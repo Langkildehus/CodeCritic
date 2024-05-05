@@ -19,7 +19,12 @@ window.addEventListener("load", () => {
     // Check logged in cookie
     checkCookie();
     // Check last opened assignment cookie
+    if (getCookie("assignment") == "") {
+        console.log("if");
+        setCookie("assignment","Guide til CodeCritic",1);
+    }
     checkAssignmentCookie();
+    console.log(getCookie("assignment"));
 })
 
 // Onclick events
