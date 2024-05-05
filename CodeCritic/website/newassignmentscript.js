@@ -30,6 +30,9 @@ function submit() {
           document.getElementById("assignmentTestcases").value = "";
           document.getElementById("assignmentJudge").value = "";
           document.getElementById("numbererror").innerHTML = "";
+          document.getElementById("error").innerHTML = "";
+        } else if (xhr.readyState == 4 && xhr.status == 400) {
+          document.getElementById("error").innerHTML = "Form parameters not valid";
         } else {
           console.log(`Error: ${xhr.status}`);
         }
