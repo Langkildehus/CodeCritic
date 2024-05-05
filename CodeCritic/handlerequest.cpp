@@ -67,6 +67,7 @@ void RespondWithError(const SOCKET connection, const std::string& errormsg)
 
 void CreateAssignment(const SOCKET connection, const std::string& msg)
 {
+	// List of all parameters expected
 	const std::string parameterNames[11] = { "\"name\"", "\"description\"", "\"input\"", "\"output\"",
 		"\"exInput\"", "\"exOutput\"", "\"time\"", "\"constraint\"", "\"points\"", "\"tests\"", "\"judge\"" };
 	const std::string customVars[7] = { "--Title--", "--Description--", "--Input--", "--Output--",

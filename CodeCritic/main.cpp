@@ -4,8 +4,6 @@
 #include "socket.h"
 #include "database.h"
 
-#define AVX512
-
 void HandleRequest(const SOCKET connection, Tester* tester);
 Database db{}; //create a instance of Database
 
@@ -57,13 +55,11 @@ int main()
 {
 	// Default DB & Assignment setup
 	SetupAssignments();
-	db.signup("SJJ", "1234");
-	db.signup("SYJ", "1234");
-	db.signup("ML", "1234");
 
 	// Instantiate Tester
 	Tester tester{};
 
+	// Load server config
 	const Config cfg = Load();
 
 	// Start listening on webserver
