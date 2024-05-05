@@ -24,7 +24,7 @@ function submission() {
     modal(1);
     // POST request
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1/submit");
+    xhr.open("POST", "/submit");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.responseType = "json";
     const body = JSON.stringify({
@@ -53,7 +53,7 @@ function submission() {
 function updateLeaderboard() {
     // GET request leaderboard
     const xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://127.0.0.1/leaderboard");
+    xhr.open("GET", "/leaderboard");
     xhr.send();
     xhr.responseType = "json";
     xhr.onload = () => {

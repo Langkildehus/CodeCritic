@@ -2,7 +2,7 @@
 window.addEventListener("load", () => {
     /* GET request - Opgaver */
     const xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://127.0.0.1/opgaver");
+    xhr.open("GET", "/opgaver");
     xhr.send();
     xhr.responseType = "json";
     xhr.onload = () => {
@@ -54,7 +54,7 @@ function login() {
 /* POST login */
 function loginServer(username, password) {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1/login");
+    xhr.open("POST", "/login");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     const body = JSON.stringify({
         user: username,
@@ -92,7 +92,7 @@ function signup() {
     document.getElementById("pwd1").value = "";
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1/signup");
+    xhr.open("POST", "/signup");
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     const body = JSON.stringify({
         user: username,
