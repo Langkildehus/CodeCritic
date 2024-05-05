@@ -144,7 +144,6 @@ bool Database::checkLogin(const std::string& username, const std::string& Passwo
 	// If not, print the the error to the terminal and return false to indicate that the login failed
 	if (exit != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW)
 	{
-		std::cout << "ERROR:" << sqlite3_errmsg(DB) << "\n";
 		return false;
 	}
 	// Then check if the password from the database is the same as the one that the user tried
