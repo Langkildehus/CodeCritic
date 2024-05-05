@@ -46,7 +46,7 @@ int Database::createAssignment(const std::string& tName)
 	// If it created the table correct prints in the terminal that it worked 
 	else
 	{
-		std::cout << "Table" + tName + "created Successfully" << "\n";
+		std::cout << "Table " + tName + " created Successfully" << "\n";
 	}
 	return 0;
 }
