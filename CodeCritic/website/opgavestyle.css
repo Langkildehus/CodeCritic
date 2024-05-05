@@ -25,6 +25,10 @@ body {
     border: 1px solid;
 }
 
+#submit:hover {
+    background-color: gray;
+}
+
 code div {
     background-color: lightgray;
     border-radius: 5px;
