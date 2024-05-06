@@ -12,7 +12,7 @@ Linje 1: Tallet n
 Linje 2: n hele tal, a<sub>1</sub>, a<sub>2</sub> ... a<sub>n</sub>
 --Input--
 --Output--
-Linja 1: Mængden af penge Svampebob røver
+Linje 1: Mængden af penge Svampebob røver
 --Output--
 --ExampleInput--
 4
